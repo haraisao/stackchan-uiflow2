@@ -1,0 +1,24 @@
+<html>
+    <head>
+        <script type="text/javascript">
+            async function request_tts(){
+                var txt = document.getElementById("tts").value;
+                var url ="/tts"
+                const response = await fetch(url,{
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "text/plain;charset=utf-8",
+                    },
+                    body: txt
+                }
+                );
+                console.log(response);
+            }
+        </script>
+        <title>Sample TTS</title>
+    </head>
+    <body>
+        <h1>Sample TTS</h1>
+        TTS: <input type="text" id="tts" value=""><button onclick="request_tts()">TTS</button>
+    </body>
+</html>

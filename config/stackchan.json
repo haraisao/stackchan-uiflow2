@@ -1,0 +1,9 @@
+{
+    "motor": "Dynamixel",
+    "tts" : "google",
+    "tts_ip": "192.168.0.100",
+    "ap_name": "Home",
+    "asr": "google",
+    "asr_ip": "192.168.0.100",
+    "web_server": ""
+}
