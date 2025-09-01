@@ -54,8 +54,21 @@
         <button onclick="move()">Move</button> <br>
 
         <h3>Face</h3>
-        Face: <input type="input" id="face" value="normal" />
-        <button onclick="face()">action</button> <br>
+        Face: <!--<input type="input" id="face" value="normal" /> -->
+         <select id="face" onchange="face()">
+            <option value="normal">Normal</option>
+            <option value="smile">Smile</option>
+            <option value="anger">Anger</option>
+            <option value="unhappy">Unhappy</option>
+            <option value="surprise">Surprise</option>
+            <option value="wink_r">Wink Right</option>
+            <option value="wink_l">Wink Left</option>
+            <option value="look_r">Look Right</option>
+            <option value="look_l">Look Left</option>
+            <option value="look_u">Look Up</option>
+            <option value="look_d">Look Down</option>
+        </select>
+        <!-- <button onclick="face()">action</button> --><br> 
 
 
         <h3>Other</h3>

@@ -62,6 +62,8 @@ class Face:
         self.buffer.setFont(M5.Lcd.FONTS.DejaVu18)
         #Widgets.FONTS.EFontJA24
         self.current_face='normal'
+        self.message=''
+        self.info=''
     
     def set_center(self, x, y):
         self.center=[x,y]
@@ -325,6 +327,9 @@ class Face:
             if self.blink < 0 and self.blink_start_flag > self.next_blink:
                 self.start_blink()
 
+        if self.message : self.print_message(self.message)
+        if self.info: self.print_info(self.info)
+
         self.flush()
         pass
 
@@ -336,20 +341,22 @@ class Face:
         self.buffer.push(0,self.top)
         pass
 
-    def print_message(self, msg):
-        self.buffer.fillRect(0,0,320,20,0xffffff)
-        self.buffer.setCursor(0,2)
-        self.buffer.setTextColor(0, 0xffffff)
-        self.buffer.print(msg)
-        self.flush()
+    def print_message(self, msg=''):
+        if msg:
+            self.buffer.fillRect(0,0,320,20,0xffffff)
+            self.buffer.setCursor(0,2)
+            self.buffer.setTextColor(0, 0xffffff)
+            self.buffer.print(msg)
+            self.flush()
         return
     
-    def print_info(self, msg):
-        self.buffer.fillRect(0,222,320,20,0xffff00)
-        self.buffer.setCursor(0,222)
-        self.buffer.setTextColor(0, 0xffff00)
-        self.buffer.print(msg)
-        self.flush()
+    def print_info(self, msg=''):
+        if msg:
+            self.buffer.fillRect(0,222,320,20,0xffff00)
+            self.buffer.setCursor(0,222)
+            self.buffer.setTextColor(0, 0xffff00)
+            self.buffer.print(msg)
+            self.flush()
         return
     
     def update(self):

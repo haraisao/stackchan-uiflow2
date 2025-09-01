@@ -14,11 +14,29 @@
                 );
                 console.log(response);
             }
+
+            async function request_asr(){
+                var txt = document.getElementById("asr_param").value;
+                var url ="/asr_local"
+                const response = await fetch(url,{
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "text/plain;charset=utf-8",
+                    },
+                    body: txt
+                }
+                );
+                console.log(response);
+            }
         </script>
         <title>Sample TTS</title>
     </head>
     <body>
         <h1>Sample TTS</h1>
         TTS: <input type="text" id="tts" value=""><button onclick="request_tts()">TTS</button>
+
+        <h1>Sample ASR</h1>
+        <input type="text" id="asr_param" value=""/>
+        <button onclick="request_asr()">Do</button>
     </body>
 </html>

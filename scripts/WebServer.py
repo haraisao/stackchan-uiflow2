@@ -11,7 +11,7 @@ class WebServer:
     if type(port) == str: port = int(port)
     self.port = port
     self.reader = comm.HttpReader(top)
-    self.server=comm.SocketServer(self.reader, "Web", "", port)
+    self.server = comm.SocketServer(self.reader, "Web", "", port)
   
   def renew(self):
     self.server.stop()

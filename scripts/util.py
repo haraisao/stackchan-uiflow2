@@ -67,7 +67,11 @@ def setup_wlan(apoint="Home", passwd="", n=3):
         
     wlan=network.WLAN(network.STA_IF)
     wlan.config(reconnects=n)
-    wlan.connect(apoint_, passwd_)
+    print("Connect:", apoint_, passwd_)
+    try:
+        wlan.connect(apoint_, passwd_)
+    except:
+        pass
     return wlan
 
 def connect_wlan(wlan, apoint="Home", retry=3):
@@ -87,5 +91,8 @@ def connect_wlan(wlan, apoint="Home", retry=3):
         return
 
     wlan.config(reconnects=retry)
-    wlan.connect(apoint_, passwd_)
-    return wlan.ifconfig()
+    try:
+        wlan.connect(apoint_, passwd_)
+        return wlan.ifconfig()
+    except:
+        return None

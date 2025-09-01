@@ -320,6 +320,7 @@ class SocketServer(SocketPort):
     self.setServerMode()
     self.cometManager = CometManager(self)
     self.bind()
+    self.socket.listen(3)
 
   #
   # Accept new request, create a service 
@@ -367,7 +368,15 @@ class SocketServer(SocketPort):
     print( "..Terminated")
     return 
 
-  #
+  def spin_once(self, timeout=1.0):
+    res = self.wait_for_read(timeout) 
+    if res == 1:
+      self.accept_service()
+    elif res == -1:
+      self.terminate()
+    else:
+      pass
+#
   #
   #
   def getServer(self):

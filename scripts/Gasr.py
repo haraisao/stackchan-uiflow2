@@ -40,7 +40,8 @@ class Gasr(Command):
     indata2 = struct.unpack(f"{len(indata) / 2:.0f}h", indata)
     sqr_sum = sum([x*x for x in indata2])
     rms = math.sqrt(sqr_sum/len(indata2))
-    power = 20 * math.log10(rms) if rms > 0.0 else -math.inf 
+    power = 20 * math.log10(rms) if rms > 0.0 else -math.inf
+    #print("===", power)
     return power
   
   #
@@ -65,14 +66,14 @@ class Gasr(Command):
     response = requests2.post(url, json=request_data, headers=headers)
     return response.text
 
-  def record_audio(self, tm=10, thr=38.5):
+  def record_audio(self, tm=5, thr=41, max_count=1 ):
       Mic.begin()
       ds=0.5
       tm0=time.time()+tm
       res=b""
-      thr=34
       flag=False
-      #print(time.time(), tm0)
+      count=0
+      print("Start--", time.time(), tm0)
       while time.time() < tm0:
         rec_data_ = bytearray(int(8000 * ds))
         Mic.record(rec_data_, 8000, False)
@@ -81,18 +82,22 @@ class Gasr(Command):
         if self.calc_power(rec_data_) > thr:
           flag=True
           res +=rec_data_
+          count=0
         elif flag:
+          res += rec_data_
+          count += 1
           print(self.calc_power(rec_data_))
-          Mic.end()
-          return res
+          if count > max_count:
+            Mic.end()
+            return res
       Mic.end()
       return res
    
-  def do_preocess(self, max_seconds=10, thr=38.5):
+  def do_process(self, max_seconds=10, thr=41, max_count=0):
     if not self._apikey :
       print("No API key")
       return
-    data=self.record_audio(max_seconds, thr)
+    data=self.record_audio(max_seconds, thr, max_count)
     #print("Start", time.time())
     if len(data) > 0:
       res_=self.request_speech_recog(data)
