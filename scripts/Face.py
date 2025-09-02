@@ -12,6 +12,10 @@ import machine
 import time
 import math
 
+INFO_COLOR=0xffff00
+MSG_COLOR=0xffffff
+DEFAULT_COLOR=0xffffff
+
 class Face:
     def __init__(self):
         #self.buffer=Display.newCanvas(320,240,16,True)
@@ -101,32 +105,35 @@ class Face:
             return ""
     #
     #
-    def start_motion(self, typ="", angle=0, end=1000, count=1):
+    def start_motion(self, direction=1):
         if self.moving: return
-        if not typ:
-            typ=self.random_type()
-        elif type(typ) is list:
-            self.motions=typ
-            typ=self.random_type()
-        if count > 0: self.count=count*2-1
-        self.draw(typ, angle=angle)
-        self.blink_timer.init(mode=machine.Timer.ONE_SHOT,
-                              period=end,
+        self.moving=True
+        self.current_angle = 0
+        self.move_reverse = direction
+        self.blink_timer.init(mode=machine.Timer.PERIODIC,
+                              period=40,
                               callback=self.callback_motion)
+        self.draw(self.current_face)
         return
     #
     #
     def callback_motion(self,tm):
-        typs=["normal", ""]
-        self.count -= 1
-        self.blink_timer.deinit()
-        if self.count >0:
-            typ=typs[self.count % 2]
-            end = 2000 + int((random.random()-0.5) * 500)
-            angle= int((random.random()-0.5) * 15)
-            self.start_motion(typ, angle=angle, end=end, count=0)
-        else:
-            self.draw()
+        self.current_angle += 4 * self.move_reverse
+        #print(self.current_angle)
+        self.draw(self.current_face,angle=self.current_angle)
+        if self.current_angle > 10:
+            self.move_reverse = -1
+        elif self.current_angle < -10:
+            self.move_reverse = 1
+        if self.current_angle == 0:
+            self.blink_timer.deinit()
+            self.stop_motion()
+        return
+    #
+    #
+    def stop_motion(self):
+        self.draw(self.current_face)
+        self.moving=False
         return
     #
     #
@@ -143,34 +150,34 @@ class Face:
 
         if param0 == 1:   #  ^ ^
             for i in range(3):
-              self.buffer.drawArc(xl, yl, r-1+i, r+i, 180+angle1, 360+angle1, 0xffffff)
-              self.buffer.drawArc(xr, yr, r-1+i, r+i, 180+angle1, 360+angle1, 0xffffff)
+              self.buffer.drawArc(xl, yl, r-1+i, r+i, 180+angle1, 360+angle1, DEFAULT_COLOR)
+              self.buffer.drawArc(xr, yr, r-1+i, r+i, 180+angle1, 360+angle1, DEFAULT_COLOR)
 
         elif param0 == 2:  # o -
-            self.buffer.fillRect(xl-(r+l)//2, yl-r//2, r+l, r, 0xffffff)
-            self.buffer.fillCircle(xr, yr, r, 0xffffff)
+            self.buffer.fillRect(xl-(r+l)//2, yl-r//2, r+l, r, DEFAULT_COLOR)
+            self.buffer.fillCircle(xr, yr, r, DEFAULT_COLOR)
 
         elif param0 == 3:   # - o
-            self.buffer.fillRect(xr-(r+l)//2, yr-r//2, r+l, r, 0xffffff)
-            self.buffer.fillCircle(xl, yl, r, 0xffffff)
+            self.buffer.fillRect(xr-(r+l)//2, yr-r//2, r+l, r, DEFAULT_COLOR)
+            self.buffer.fillCircle(xl, yl, r, DEFAULT_COLOR)
 
         elif param0 == 4:  # - -
-            self.buffer.fillRect(xl-(r+l)//2, yl-r//2, r+l, r, 0xffffff)
-            self.buffer.fillRect(xr-(r+l)//2, yr-r//2, r+l, r, 0xffffff)
+            self.buffer.fillRect(xl-(r+l)//2, yl-r//2, r+l, r, DEFAULT_COLOR)
+            self.buffer.fillRect(xr-(r+l)//2, yr-r//2, r+l, r, DEFAULT_COLOR)
 
         elif param0 == 5:  # + +
-            self.buffer.fillRect(xl-(r+l)//2, yl-r//2, r+l, r, 0xffffff)
-            self.buffer.fillRect(xl-r//2, yl-(r+l)//2, r, r+l, 0xffffff)
-            self.buffer.fillRect(xr-(r+l)//2, yr-r//2, r+l, r, 0xffffff)
-            self.buffer.fillRect(xr-r//2, yr-(r+l)//2, r, r+l, 0xffffff)
+            self.buffer.fillRect(xl-(r+l)//2, yl-r//2, r+l, r, DEFAULT_COLOR)
+            self.buffer.fillRect(xl-r//2, yl-(r+l)//2, r, r+l, DEFAULT_COLOR)
+            self.buffer.fillRect(xr-(r+l)//2, yr-r//2, r+l, r, DEFAULT_COLOR)
+            self.buffer.fillRect(xr-r//2, yr-(r+l)//2, r, r+l, DEFAULT_COLOR)
 
         elif param0 == 6: # / \ or \ /
-            self.fillRectRot(xl-(r+l)//2, yl-r//2, r+l, r, -angle2, 0xffffff)
-            self.fillRectRot(xr-(r+l)//2, yr-r//2, r+l, r, angle2, 0xffffff)
+            self.fillRectRot(xl-(r+l)//2, yl-r//2, r+l, r, -angle2, DEFAULT_COLOR)
+            self.fillRectRot(xr-(r+l)//2, yr-r//2, r+l, r, angle2, DEFAULT_COLOR)
 
         else:  # o o
-            self.buffer.fillCircle(xl, yl, r, 0xffffff)
-            self.buffer.fillCircle(xr, yr, r, 0xffffff)
+            self.buffer.fillCircle(xl, yl, r, DEFAULT_COLOR)
+            self.buffer.fillCircle(xr, yr, r, DEFAULT_COLOR)
             if self.blink > 0:
                 self.buffer.fillCircle(xl, yl-self.blink, r, 0)
                 self.buffer.fillCircle(xr, yr-self.blink, r, 0)
@@ -185,7 +192,7 @@ class Face:
             y=self.mouse_pos[1] - r -pos
             x, y = self.rot_pos([x, y], angle)
             for i in range(4):
-              self.buffer.drawArc(x, y, r+i, r+i+1, 70+angle, 110+angle, 0xffffff)
+              self.buffer.drawArc(x, y, r+i, r+i+1, 70+angle, 110+angle, DEFAULT_COLOR)
 
         elif mouse_flag == 2 or mouse_flag == '^': # ^
             r=80
@@ -193,7 +200,7 @@ class Face:
             y=self.mouse_pos[1] + r -pos
             x, y = self.rot_pos([x, y], angle)
             for i in range(4):
-              self.buffer.drawArc(x, y, r+i, r+i+1, 250+angle, 290+angle, 0xffffff)
+              self.buffer.drawArc(x, y, r+i, r+i+1, 250+angle, 290+angle, DEFAULT_COLOR)
 
         elif mouse_flag == 3 or mouse_flag == 'o': # ^
             x=self.mouse_pos[0] + xpos
@@ -201,7 +208,7 @@ class Face:
             rx=10
             ry=20
             for i in range(4):
-              self.buffer.drawEllipse(x, y, rx+i, ry+i, 0xffffff)
+              self.buffer.drawEllipse(x, y, rx+i, ry+i, DEFAULT_COLOR)
        
         else:  # -
             minWidth=50
@@ -214,16 +221,16 @@ class Face:
             x=self.mouse_pos[0] - w // 2 + xpos
             y=self.mouse_pos[1] - h // 2 - pos
             if angle == 0:
-              self.buffer.fillRect(x, y, w, h, 0xffffff)
+              self.buffer.fillRect(x, y, w, h, DEFAULT_COLOR)
             else:
               for i in range(h):
                 x1, y1 = self.rot_pos([x, y+i], angle)
                 x2, y2 = self.rot_pos([x+w, y+i], angle)
-                self.buffer.drawLine(x1, y1, x2, y2, 0xffffff)
+                self.buffer.drawLine(x1, y1, x2, y2, DEFAULT_COLOR)
         return
     #
     #
-    def fillRectRot(self, x, y, w, h, angle=0, color=0xffffff):
+    def fillRectRot(self, x, y, w, h, angle=0, color=DEFAULT_COLOR):
         center = [x+w//2, y+h//2]
         for i in range(h):
             x1, y1 = self.rot_pos([x, y+i], angle, center)
@@ -338,9 +345,10 @@ class Face:
     #
     def print_message(self, msg=''):
         if msg:
-            self.top_buffer.fillRect(0,0,320,26,0xffffff)
+            #self.top_buffer.fillRect(0,0,320,26,MSG_COLOR)
+            self.top_buffer.fillScreen(INFO_COLOR)
             self.top_buffer.setCursor(0,2)
-            self.top_buffer.setTextColor(0, 0xffffff)
+            self.top_buffer.setTextColor(0, MSG_COLOR)
             self.top_buffer.print(msg)
             self.top_buffer.push(0,0)
         else:
@@ -351,13 +359,14 @@ class Face:
     #
     def print_info(self, msg=''):
         if msg:
-            self.bottom_buffer.fillRect(0,0,320,26,0xffff00)
+            #self.bottom_buffer.fillRect(0,0,320,26,INFO_COLOR)
+            self.bottom_buffer.fillScreen(INFO_COLOR)
             self.bottom_buffer.setCursor(0,2)
-            self.bottom_buffer.setTextColor(0, 0xffff00)
+            self.bottom_buffer.setTextColor(0, INFO_COLOR)
             self.bottom_buffer.print(msg)
         else:
             self.bottom_buffer.clear()
-        self.bottom_buffer.push(0,188)
+        self.bottom_buffer.push(0, 214)
         return
     #
     #
