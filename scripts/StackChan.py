@@ -69,7 +69,12 @@ class StackChan:
         self.motor = DynamixelDriver.DynamixelDriver()
       elif self.config['motor'] == 'SG90':
         import SG90Driver
-        self.motor = SG90Driver.SG90Driver()
+        try:
+          self.motor = SG90Driver.SG90Driver(
+                          h_port=int(self.config['sg90_pan']),
+                          v_port=int(self.config['sg90_tilt']))
+        except:
+          self.motor = SG90Driver.SG90Driver()
       else:
         self.motor = None
     except:
