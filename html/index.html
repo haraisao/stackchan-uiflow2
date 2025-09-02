@@ -14,13 +14,24 @@
                 const ctx = canvas.getContext('2d');
                 const imageData = ctx.createImageData(width, height);
 
-                const raw = atob(data); // Base64 → binary
-                for (let i = 0; i < raw.length; i += 3) {
-                const idx = i / 3 * 4;
-                imageData.data[idx] = raw.charCodeAt(i);     // R
-                imageData.data[idx + 1] = raw.charCodeAt(i+1); // G
-                imageData.data[idx + 2] = raw.charCodeAt(i+2); // B
-                imageData.data[idx + 3] = 255;               // Alpha
+                const binary = atob(data); // Base64 → binary
+                const buffer = new Uint8Array(binary.length);
+                for (let i = 0; i < binary.length; i++) {
+                    buffer[i] = binary.charCodeAt(i);
+                }
+
+                for (let i = 0, j = 0; i < buffer.length; i += 2, j += 4) {
+                    const value = (buffer[i] << 8) | buffer[i + 1];
+
+                    // RGB565 → 8bit RGB変換
+                    const r = ((value >> 11) & 0x1F) << 3;
+                    const g = ((value >> 5) & 0x3F) << 2;
+                    const b = (value & 0x1F) << 3;
+
+                    imageData.data[j] = r;
+                    imageData.data[j + 1] = g;
+                    imageData.data[j + 2] = b;
+                    imageData.data[j + 3] = 255; // Alpha
                 }
 
                 ctx.putImageData(imageData, 0, 0);

@@ -2,6 +2,8 @@
 import Face
 import util
 import json
+import binascii
+import camera
 
 import WebServer
 
@@ -15,6 +17,9 @@ class StackChan:
       self.config={}
     # WLAN
     self.wlan = util.connect_wlan()
+    #
+    # camera
+    camera.init(pixformat=camera.RGB565, framesize=camera.QVGA)
 
     #
     # 
@@ -35,6 +40,7 @@ class StackChan:
     self.web_server=WebServer.WebServer(port)
     self.web_server.registerCommand("/move", self.set_goal_position)
     self.web_server.registerCommand("/face", self.face.set_face_id)
+    self.web_server.registerCommand("/get_camera_image", self.capture_image)
     if self.tts:
         self.web_server.registerCommand("/tts", self.tts.set_request)
 
@@ -135,11 +141,23 @@ class StackChan:
       return True
     return False
 
-  def do_asr_process(self):
+  def do_asr_process(self, arg):
     if self.asr:
       result = self.asr.do_process()
       if result and result['error'] == '':
         self.face.print_info(result['result'])
+    return True
+  
+  def capture_image(self, arg):
+    frame = camera.snapshot()
+    raw_bytes = frame.bytearray()
+    encoded = binascii.b2a_base64(raw_bytes, newline=False).decode()
+    response = {
+        'width': frame.width(),
+        'height': frame.height(),
+        'data': encoded
+    }
+    return response
 
   def move(self, p_deg, t_deg):
     self.motor.move(p_deg, t_deg, True)
