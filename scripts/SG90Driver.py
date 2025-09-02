@@ -9,27 +9,32 @@ def sign(x):
     return (x > 0) - (x < 0)
 
 class SG90Driver:
-  def __init__(self, offset=56):
+  def __init__(self, offset=56, h_port=2, v_port=9):
     self.min = 500 * 65535 // 20000
     self.max = 2500 * 65535 // 20000
     self.zero = (1500+offset) * 65535 // 20000
     self.ddeg = (self.max -self.min) / 180.0
-    self.delay=0.02
-    self._last_h_deg=0
-    self._last_v_deg=0
-    self._target_h_deg=0
-    self._target_v_deg=-5
+    self.delay = 0.02
+    self._last_h_deg = 0
+    self._last_v_deg = 0
+    self._target_h_deg = 0
+    self._target_v_deg = -5
+    self.h_port = h_port
+    self.v_port = v_port
     self.motor(True)
-
+  #
+  #
   def create_pwm(self, pin):
     return machine.PWM(pin, freq=50, duty_u16=self.zero)
-
+  #
+  #
   def move_direct(self, h_deg, v_deg):
     self.h_motor.duty_u16(self.zero + int(self.ddeg * h_deg))
     self.v_motor.duty_u16(self.zero + int(self.ddeg * v_deg))
     self.current_pos=[h_deg, v_deg]
     return
-
+  #
+  #
   def move(self, h_deg, v_deg, tm=0.5):
     if tm is True: tm=0.5
     h_deg = max(min(h_deg, 90), -90)
@@ -52,17 +57,19 @@ class SG90Driver:
     self._last_h_deg = h_deg
     self._last_v_deg = v_deg
     return
-
+  #
+  #
   def motor(self, flag=True):
     if flag:
-        self.h_motor=self.create_pwm(2) # PortA-> 2, PortC -> 17
-        self.v_motor=self.create_pwm(9)  # PortB -> 9
+        self.h_motor=self.create_pwm(self.h_port) # PortA-> 2, PortC -> 17
+        self.v_motor=self.create_pwm(self.v_port)  # PortB -> 9
         self.current_pos=[0,0]
     else:
         self.h_motor.deinit()
         self.v_motor.deinit()
     return
-
+  #
+  #
   def update(self, tm=0):
       if self._last_h_deg != self._target_h_deg or self._last_v_deg != self._target_v_deg:
           self.move(self._target_h_deg, self._target_v_deg)
