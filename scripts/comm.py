@@ -160,9 +160,10 @@ class SocketPort(Thread):
   #
   #  Wait for comming data...
   #
-  def wait_for_read(self, timeout=0.1):
+  def wait_for_read(self, timeout=1.0):
     try:
       rready, wready, xready = select.select([self.socket],[],[], timeout)
+      #print("--wait", self)
       if len(rready) :
         return 1
       return 0
@@ -173,7 +174,7 @@ class SocketPort(Thread):
   #
   # Receive data
   #
-  def receive_data(self, bufsize=8192, timeout=1.0):
+  def receive_data(self, bufsize=8192, timeout=10.0):
     data = None
     try:
       if self.wait_for_read(timeout) == 1  :
@@ -223,15 +224,15 @@ class SocketPort(Thread):
   #
   #  Background job ( message receiver )
   #
-  def message_receiver(self):
+  def message_receiver(self, timeout=1.0):
     while self.mainloop:
-      data = self.receive_data() 
+      data = self.receive_data(timeout=timeout)
 
       if data  == -1:
         self.terminate()
 
       elif data or data is None:
-        if self.reader.parse(data):
+        if self.reader.parse(data) or data is None:
           self.mainloop=False
 
       else :
@@ -239,7 +240,7 @@ class SocketPort(Thread):
         print(data)
 
     self.terminate()
-    #print("Read thread terminated: %s" % self.name)
+    print("Read thread terminated: %s" % self.name)
     return
 
   #
@@ -350,7 +351,7 @@ class SocketServer(SocketPort):
   #  Wait request from a client 
   #      [Overwrite super's method]
   #
-  def accept_service_loop(self, lno=1, timeout=1.0):
+  def accept_service_loop(self, lno=1, timeout=10.0):
     print( "Wait for accept: %s(%s:%d)" % (self.name, self.host, self.port))
     self.socket.listen(lno)
     while self.mainloop:
@@ -368,7 +369,7 @@ class SocketServer(SocketPort):
     print( "..Terminated")
     return 
 
-  def spin_once(self, timeout=1.0):
+  def spin_once(self, timeout=10.0):
     res = self.wait_for_read(timeout) 
     if res == 1:
       self.accept_service()
@@ -395,7 +396,8 @@ class SocketServer(SocketPort):
   #  Thread operations....
   #
   def run(self):
-    self.accept_service_loop()
+    self.accept_service_loop(timeout=20.0)
+    return
 
   #
   # 
@@ -436,7 +438,8 @@ class SocketService(SocketPort):
   # Threading...
   #
   def run(self):
-    self.message_receiver()
+    self.message_receiver(timeout=1.0)
+    return
 
   #
   #
@@ -449,6 +452,7 @@ class SocketService(SocketPort):
   #
   def terminate(self):
     self.mainloop=False
+    print("terminate service", self)
     return
 
 #

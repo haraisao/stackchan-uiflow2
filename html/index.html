@@ -1,6 +1,10 @@
-<html>
+<!DOCTYPE html>
+<html lang="ja">
     <head>
         <title>Hello Stack-chen</title>
+        <meta name="viewport" content="width=device-width,initial-scale=1.0">
+        <meta charset="utf-8">
+
         <script type="text/javascript" src="js/joy.min.js"></script>
         <script type="text/javascript">
             async function get_camera_image(){
@@ -69,11 +73,11 @@
         </script>
     </head>
     <body>
-        <h1>Hello Stack-chan</h1>
-        <h3>Motion</h3>
+        <h1>アールティ版スタックチャンの操作</h1>
+        <h3>首振り操作</h3>
 		<div >
-			Pan :<input id="joyX" type="text" value="0"/></br>
-			Tilt :<input id="joyY" type="text" value="0"/>
+			水平方向:<input id="joyX" type="text" value="0"/></br>
+			垂直方向:<input id="joyY" type="text" value="0"/>
 		</div>
 		<div id="joyDiv" style="width:200px;height:200px;margin:10px;"></div>
 
@@ -93,29 +97,28 @@
             }, 1000);
         </script>
         <h3>Face</h3>
-        Face: <!--<input type="input" id="face" value="normal" /> -->
+        顔の表情:
          <select id="face" onchange="face()">
-            <option value="normal">Normal</option>
-            <option value="smile">Smile</option>
-            <option value="anger">Anger</option>
-            <option value="unhappy">Unhappy</option>
-            <option value="surprise">Surprise</option>
-            <option value="wink_r">Wink Right</option>
-            <option value="wink_l">Wink Left</option>
-            <option value="look_r">Look Right</option>
-            <option value="look_l">Look Left</option>
-            <option value="look_u">Look Up</option>
-            <option value="look_d">Look Down</option>
-        </select>
-        <!-- <button onclick="face()">action</button> --><br> 
-
-
-        <h3>Other</h3>
-        <ul>
-            <li><a href="tts_test.html">TTS test</a></li>
-        </ul>
-        <button onclick="get_camera_image()">Get Image</button>
+            <option value="normal">通常（瞬きあり）</option>
+            <option value="smile">笑い</option>
+            <option value="anger">怒り</option>
+            <option value="unhappy">悲しみ</option>
+            <option value="surprise">驚き</option>
+            <option value="wink_r">ウィンク（右）</option>
+            <option value="wink_l">ウィンク（左）</option>
+            <option value="look_r">右を見る</option>
+            <option value="look_l">左を見る</option>
+            <option value="look_u">見上げる</option>
+            <option value="look_d">見下ろす</option>
+        </select><br> 
+        <button onclick="get_camera_image()">カメラで撮影</button><br>
         <canvas id="canvas"></canvas>
+
+        <h3>リンク</h3>
+        <ul>
+            <li><a href="tts_test.html">音声認識＆音声合成</a></li>
+        </ul>
+
 
     </body>
 </html>

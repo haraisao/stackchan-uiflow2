@@ -7,7 +7,8 @@ import camera
 
 import WebServer
 
-
+#
+# Stack-chan Main
 class StackChan:
   def __init__(self):
     util.mount_sd()
@@ -20,14 +21,15 @@ class StackChan:
     #
     # camera
     camera.init(pixformat=camera.RGB565, framesize=camera.QVGA)
-
     #
-    # 
+    # face, motors, TTS client, ASR client
     self.face=Face.Face()
     self.set_motor()
     self.set_tts()
     self.set_asr()
 
+  #
+  # Create web server
   def init_web(self, n=80):
     if  'web_server' in self.config:
       try:
@@ -36,26 +38,30 @@ class StackChan:
         port = n
     else:
       port = n
-
+    #
     self.web_server=WebServer.WebServer(port)
+    #
+    # Register REST API
     self.web_server.registerCommand("/move", self.set_goal_position)
     self.web_server.registerCommand("/face", self.face.set_face_id)
     self.web_server.registerCommand("/get_camera_image", self.capture_image)
+    self.web_server.registerCommand("/set_message", self.set_message)
+
     if self.tts:
         self.web_server.registerCommand("/tts", self.tts.set_request)
-
     if self.asr:
-        self.web_server.registerCommand("/asr_local", self.do_asr_process)
-        self.web_server.registerCommand("/asr", self.asr)
+        self.web_server.registerCommand("/asr", self.asr.set_request)
 
     self.start_web_server()
     return
-  
+  #
+  # Start web service thread.
   def start_web_server(self):
     if self.isconnected_wlan():
         self.web_server.start()
     return
-
+  #
+  # Setup motor driver
   def set_motor(self):
     try:
       if self.config['motor'] == 'Dynamixel':
@@ -69,7 +75,8 @@ class StackChan:
     except:
       self.motor = None
     return
-  
+  #
+  # Setup Text-to-speach(TTS) client
   def set_tts(self):
     tts_name = 'google'
     if 'tts' in self.config:
@@ -84,7 +91,9 @@ class StackChan:
     else:
       import Gtts
       self.tts = Gtts.Gtts()
-
+    return
+  #
+  # Setup Automatic-speech-recognition(ASR) client
   def set_asr(self):
     asr_name = 'google'
     if 'asr' in self.config:
@@ -101,8 +110,10 @@ class StackChan:
       self.asr = None
     else:
       import Gasr
-      self.asr = Gasr.Gasr()    
-  
+      self.asr = Gasr.Gasr()
+    return    
+  #
+  # Connect Wireless LAN
   def connect_wlan(self, trial=10):
     for _ in range(trial):
       self.wlan = util.connect_wlan(self.wlan)
@@ -110,12 +121,14 @@ class StackChan:
         self.face.print_info("IP:" + self.wlan.ifconfig()[0])
         return
     self.face.print_info("WLAN not connected")
-
+  #
+  # Check connection of wireless LAN
   def isconnected_wlan(self):
     if self.wlan:
       return self.wlan.isconnected()
     return False
-
+  #
+  # Servo on/off (for Dynamixel motor)
   def set_torque(self, val):
     try:
       if isinstance(val, str): val = eval(val)
@@ -123,16 +136,19 @@ class StackChan:
     except:
       pass
     return True
-
+  #
+  # Teminate web service
   def stop_web(self):
     self.web_server.stop()
     return
-
+  #
+  # Tarminate web service and motor control
   def stop(self):
     self.web_server.stop()
     self.set_torque(False)
     return
-
+  #
+  # Set goal position: pose=[Pan(degree), Tilt(degree)]
   def set_goal_position(self, pose):
     if self.motor:
       if isinstance(pose, str):
@@ -140,14 +156,20 @@ class StackChan:
       self.motor.move(pose[0], pose[1])
       return True
     return False
-
-  def do_asr_process(self, arg):
-    if self.asr:
-      result = self.asr.do_process()
-      if result and result['error'] == '':
-        self.face.print_info(result['result'])
+  #
+  # Set goal posirion
+  def move(self, p_deg, t_deg):
+    self.motor.move(p_deg, t_deg, True)
+    return
+  #
+  # Show ASR result
+  def show_asr_result(self, result):
+    if result and result['error'] == '':
+      self.face.info=result['result']
+      self.face.print_info(result['result'])
     return True
-  
+  #
+  # Capture an image
   def capture_image(self, arg):
     frame = camera.snapshot()
     raw_bytes = frame.bytearray()
@@ -158,18 +180,33 @@ class StackChan:
         'data': encoded
     }
     return response
-
-  def move(self, p_deg, t_deg):
-    self.motor.move(p_deg, t_deg, True)
-    return
-  
+  #
+  # Set message
+  def set_message(self, data):
+    try:
+      msg = json.loads(data)
+      if msg['type'] == 'info':
+        self.face.info = msg['message']
+      elif msg['type'] == 'message':
+        self.face.message = msg['message']
+      else:
+        self.face.message=''
+        self.face.info=''
+    except:
+      pass
+    return True
+  #
+  # Spin once
   def update(self):
-    #if self.web_server:
-    #  self.web_server.server.spin_once(0.3)
+    #print("--update")
     self.face.update()
     if self.motor:
       self.motor.update()
     if self.tts:
       self.tts.check_request()
+    if self.asr:
+      res=self.asr.check_request()
+      self.show_asr_result(res)
+    return
 
 

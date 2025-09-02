@@ -1,39 +1,39 @@
 import os, sys, io
 import M5
 from M5 import *
-from Button import Button
 from StackChan import StackChan
+from Button import Button
+import time
 
 
-label0 = None
 stackchan_0 = None
 button_0 = None
 
+wlan = None
 
 def setup():
-  global label0, stackchan_0, button_0
+  global stackchan_0, button_0, wlan
 
   M5.begin()
   Widgets.setRotation(1)
-  Widgets.fillScreen(0x222222)
-  label0 = Widgets.Label("label0", 228, 9, 1.0, 0xffffff, 0x222222, Widgets.FONTS.EFontJA24)
+  Widgets.fillScreen(0x000000)
 
-  Widgets.setRotation(1)
   stackchan_0 = StackChan()
-  stackchan_0.connect_wlan('RT4F')
+  wlan = stackchan_0.connect_wlan(10)
   stackchan_0.init_web(80)
   button_0 = Button('Btn1', 0, 220, 100, 20)
   button_0.set_callback('stackchan_0.connect_wlan')
 
 
 def loop():
-  global label0, stackchan_0, button_0
+  global stackchan_0, button_0, wlan
   M5.update()
   if 0 < (M5.Touch.getCount()):
     button_0.check_tap()
   else:
     button_0.check()
     stackchan_0.update()
+    time.sleep_ms(100)
 
 
 if __name__ == '__main__':
@@ -47,3 +47,4 @@ if __name__ == '__main__':
       print_error_msg(e)
     except ImportError:
       print("please update to latest firmware")
+

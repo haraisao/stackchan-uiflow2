@@ -33,6 +33,7 @@ class Gasr(Command):
     self._channels=1
 
     self._prebuf= b''
+    self.request=None
   
   #
   #
@@ -73,7 +74,7 @@ class Gasr(Command):
       res=b""
       flag=False
       count=0
-      print("Start--", time.time(), tm0)
+      #print("Start--", time.time(), tm0)
       while time.time() < tm0:
         rec_data_ = bytearray(int(8000 * ds))
         Mic.record(rec_data_, 8000, False)
@@ -86,7 +87,7 @@ class Gasr(Command):
         elif flag:
           res += rec_data_
           count += 1
-          print(self.calc_power(rec_data_))
+          #print(self.calc_power(rec_data_))
           if count > max_count:
             Mic.end()
             return res
@@ -122,6 +123,19 @@ class Gasr(Command):
       except:
         return { 'result': '', 'error': 'Invalid params' }
     return False
+  
+  def set_request(self, data):
+      self.request = data
+      return True
+  
+  def check_request(self):
+      if self.request:
+          param=json.loads(self.request)
+          print(param)
+          res=self.do_process(param['max_seconds'], param['threshold'], param['max_count'])
+          self.request=None
+          return res
+      return None
 
 def main():
    recog = Gasr()
