@@ -37,7 +37,7 @@ class Button:
 
   def set_callback(self, obj):
     if isinstance(obj, str):
-      print(obj, eval(obj))
+      #print(obj, eval(obj))
       self.callback = eval(obj)
     else:
       try:

@@ -2,7 +2,6 @@
     "motor": "Dynamixel",
     "tts" : "google",
     "tts_ip": "192.168.0.100",
-    "ap_name": "RT4F",
     "asr": "google",
     "asr_ip": "192.168.0.100",
     "web_server": "80"

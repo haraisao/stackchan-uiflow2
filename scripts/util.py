@@ -74,25 +74,28 @@ def setup_wlan(apoint="Home", passwd="", n=3):
         pass
     return wlan
 
-def connect_wlan(wlan, apoint="Home", retry=3):
-    mount_sd()
-    apoint_ = apoint
-    passwd_ = ''
-    try:
-        wlan_conf=json.loads(get_file_contents("/sd/wlan.json"))
-        if apoint in wlan_conf:
-            apoint_ = wlan_conf[apoint]["essid"]
-            passwd_ = wlan_conf[apoint]["passwd"]
-        else:
-            print("No such access point:", apoint)
-            return
-    except:
-        print("Invaid access point")
-        return
-
+def connect_wlan(wlan=None,apoints=["Home", "Work", "Mobile"], retry=3):
+    conf = get_wlan_conf()
+    if wlan is None:
+        wlan=network.WLAN(network.STA_IF)
     wlan.config(reconnects=retry)
-    try:
-        wlan.connect(apoint_, passwd_)
-        return wlan.ifconfig()
-    except:
-        return None
+    aps_ = scan_wlan(wlan)
+
+    for name in apoints:
+        if conf[name]['essid'] in aps_:
+            try:
+                wlan.connect(conf[name]['essid'], conf[name]['passwd'])
+                if wlan.isconnected():
+                    print(wlan.ifconfig())
+                    return wlan
+            except:
+                pass
+    print("Fail to connect wlan")
+    return None
+
+def scan_wlan(wlan=None):
+    if wlan is None:
+        wlan=network.WLAN(network.STA_IF)
+        wlan.config(reconnects=3)
+    aps_=wlan.scan()
+    return [x[0].decode() for x in aps_]

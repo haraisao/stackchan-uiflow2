@@ -22,7 +22,7 @@ class WebServer:
     if type(func) is str:
       try:
         func = eval(func)
-        print(func)
+        #print(func)
       except:
         print("ERROR to register:", func)
         return

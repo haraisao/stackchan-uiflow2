@@ -3,15 +3,7 @@ import Face
 import util
 import json
 
-#import Voicevox
-#import VoskAsr
-
-#import MeloTts
-#import Gasr
-import Gtts
-
 import WebServer
-
 
 
 class StackChan:
@@ -22,12 +14,8 @@ class StackChan:
     except:
       self.config={}
     # WLAN
-    self.wlan_config = util.get_wlan_conf()
-    if 'ap_name' in self.config:
-      self.ap_name = self.config['ap_name']
-    else:
-      self.ap_name = list(self.wlan_config.keys())[0]
-    self.wlan = None
+    self.wlan = util.connect_wlan()
+
     #
     # 
     self.face=Face.Face()
@@ -109,23 +97,13 @@ class StackChan:
       import Gasr
       self.asr = Gasr.Gasr()    
   
-  def connect_wlan(self, name=None, tryal=10):
-    if name is None:
-      name=self.ap_name
-    if self.wlan is None:
-      self.wlan=util.setup_wlan(name,n=5)
-    else:
-      util.connect_wlan(self.wlan, name, 5)
-
-    if not self.isconnected_wlan():
-      for _ in range(tryal):
-        util.connect_wlan(self.wlan, name, 5)
-        if self.isconnected_wlan(): break
-
-    if self.wlan.isconnected():
-      self.face.print_info("IP:" + self.wlan.ifconfig()[0])
-    else:
-      self.face.print_info("WLAN not connected")
+  def connect_wlan(self, trial=10):
+    for _ in range(trial):
+      self.wlan = util.connect_wlan(self.wlan)
+      if self.wlan and self.wlan.isconnected():
+        self.face.print_info("IP:" + self.wlan.ifconfig()[0])
+        return
+    self.face.print_info("WLAN not connected")
 
   def isconnected_wlan(self):
     if self.wlan:
