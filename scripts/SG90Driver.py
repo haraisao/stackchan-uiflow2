@@ -15,6 +15,10 @@ class SG90Driver:
     self.zero = (1500+offset) * 65535 // 20000
     self.ddeg = (self.max -self.min) / 180.0
     self.delay=0.02
+    self._last_h_deg=0
+    self._last_v_deg=0
+    self._target_h_deg=0
+    self._target_v_deg=-5
     self.motor(True)
 
   def create_pwm(self, pin):
@@ -27,8 +31,12 @@ class SG90Driver:
     return
 
   def move(self, h_deg, v_deg, tm=0.5):
+    if tm is True: tm=0.5
     h_deg = max(min(h_deg, 90), -90)
-    v_deg = max(min(v_deg, 5), -30)
+    v_deg = max(min(v_deg, -5), -30)
+
+    self._target_h_deg = h_deg
+    self._target_v_deg = v_deg
 
     n = int(tm / self.delay)
     h_dg = (h_deg - self.current_pos[0]) / n
@@ -41,6 +49,8 @@ class SG90Driver:
       self.v_motor.duty_u16(self.zero + int(self.ddeg * v_target_))
       time.sleep(self.delay)
       self.current_pos = [h_target_, v_target_]
+    self._last_h_deg = h_deg
+    self._last_v_deg = v_deg
     return
 
   def motor(self, flag=True):
@@ -52,3 +62,8 @@ class SG90Driver:
         self.h_motor.deinit()
         self.v_motor.deinit()
     return
+
+  def update(self, tm=0):
+      if self._last_h_deg != self._target_h_deg or self._last_v_deg != self._target_v_deg:
+          self.move(self._target_h_deg, self._target_v_deg)
+      return

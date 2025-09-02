@@ -240,7 +240,7 @@ class SocketPort(Thread):
         print(data)
 
     self.terminate()
-    print("Read thread terminated: %s" % self.name)
+    #print("Read thread terminated: %s" % self.name)
     return
 
   #
@@ -452,7 +452,7 @@ class SocketService(SocketPort):
   #
   def terminate(self):
     self.mainloop=False
-    print("terminate service", self)
+    #print("terminate service", self)
     return
 
 #
