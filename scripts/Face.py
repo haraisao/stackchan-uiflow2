@@ -15,15 +15,14 @@ import math
 INFO_COLOR=0xffff00
 MSG_COLOR=0xffffff
 DEFAULT_COLOR=0xffffff
+DEFAULT_BG_COLOR=0x000000
 
 class Face:
     def __init__(self):
-        #self.buffer=Display.newCanvas(320,240,16,True)
-        self.buffer=Display.newCanvas(320,188,16,True)
         self.blink=-100
         self.blink_start_flag=0
         self.next_blink=80 + random.random()*40
-        self.top=26
+        self.top=0
         self.center=[160,120-self.top]
         self.eye_=[self.center[0],self.center[1]-20]
         self.eye_dist=70
@@ -37,17 +36,14 @@ class Face:
         self.blink_timer=machine.Timer(1)
         self.motions_all=['', 'look_r', 'look_l', 'look_u', 'look_d', 'wink_r', 'wink_l', 'anger', 'surprise', 'unhappy', 'smile']
         self.motions=['', 'look_d','smile']
-        #self.buffer.setFont(M5.Lcd.FONTS.DejaVu18)
-        #Widgets.FONTS.EFontJA24
-        self.top_buffer=Display.newCanvas(320,26,16,True)
-        self.bottom_buffer=Display.newCanvas(320,26,16,True)
-        self.top_buffer.setFont(Widgets.FONTS.EFontJA24)
-        self.bottom_buffer.setFont(Widgets.FONTS.EFontJA24)
+
         self.current_face='normal'
         self.prev_face=None
         self.message=''
         self.info=''
         self.moving = False
+        self.start_time=time.time_ns()
+        Display.setFont(Widgets.FONTS.EFontJA24)
     #
     #
     def set_center(self, x, y):
@@ -69,11 +65,11 @@ class Face:
     #
     #
     def callback_blink(self, tm):
-        if self.blink > 6:
+        if self.blink > 4:
             self.blink_timer.deinit()
             self.stop_blink()
             return
-        self.blink += 1
+        self.blink += 2
         self.drawFace()
         return
     #
@@ -83,7 +79,7 @@ class Face:
         self.blink=0
         self.blink_start_flag = -100
         self.blink_timer.init(mode=machine.Timer.PERIODIC,
-                              period=50,
+                              period=100,
                               callback=self.callback_blink)
         return
     #
@@ -92,7 +88,7 @@ class Face:
         self.blink_start_flag=0
         self.next_blink=80 + random.random()*40
         self.blink=-100
-        self.drawFace()
+        self.draw(self.current_face)
         self.moving = False
         return
     #
@@ -119,7 +115,6 @@ class Face:
     #
     def callback_motion(self,tm):
         self.current_angle += 4 * self.move_reverse
-        #print(self.current_angle)
         self.draw(self.current_face,angle=self.current_angle)
         if self.current_angle > 10:
             self.move_reverse = -1
@@ -150,37 +145,37 @@ class Face:
 
         if param0 == 1:   #  ^ ^
             for i in range(3):
-              self.buffer.drawArc(xl, yl, r-1+i, r+i, 180+angle1, 360+angle1, DEFAULT_COLOR)
-              self.buffer.drawArc(xr, yr, r-1+i, r+i, 180+angle1, 360+angle1, DEFAULT_COLOR)
+              Display.drawArc(xl, yl, r-1+i, r+i, 180+angle1, 360+angle1, DEFAULT_COLOR)
+              Display.drawArc(xr, yr, r-1+i, r+i, 180+angle1, 360+angle1, DEFAULT_COLOR)
 
         elif param0 == 2:  # o -
-            self.buffer.fillRect(xl-(r+l)//2, yl-r//2, r+l, r, DEFAULT_COLOR)
-            self.buffer.fillCircle(xr, yr, r, DEFAULT_COLOR)
+            Display.fillRect(xl-(r+l)//2, yl-r//2, r+l, r, DEFAULT_COLOR)
+            Display.fillCircle(xr, yr, r, DEFAULT_COLOR)
 
         elif param0 == 3:   # - o
-            self.buffer.fillRect(xr-(r+l)//2, yr-r//2, r+l, r, DEFAULT_COLOR)
-            self.buffer.fillCircle(xl, yl, r, DEFAULT_COLOR)
+            Display.fillRect(xr-(r+l)//2, yr-r//2, r+l, r, DEFAULT_COLOR)
+            Display.fillCircle(xl, yl, r, DEFAULT_COLOR)
 
         elif param0 == 4:  # - -
-            self.buffer.fillRect(xl-(r+l)//2, yl-r//2, r+l, r, DEFAULT_COLOR)
-            self.buffer.fillRect(xr-(r+l)//2, yr-r//2, r+l, r, DEFAULT_COLOR)
+            Display.fillRect(xl-(r+l)//2, yl-r//2, r+l, r, DEFAULT_COLOR)
+            Display.fillRect(xr-(r+l)//2, yr-r//2, r+l, r, DEFAULT_COLOR)
 
         elif param0 == 5:  # + +
-            self.buffer.fillRect(xl-(r+l)//2, yl-r//2, r+l, r, DEFAULT_COLOR)
-            self.buffer.fillRect(xl-r//2, yl-(r+l)//2, r, r+l, DEFAULT_COLOR)
-            self.buffer.fillRect(xr-(r+l)//2, yr-r//2, r+l, r, DEFAULT_COLOR)
-            self.buffer.fillRect(xr-r//2, yr-(r+l)//2, r, r+l, DEFAULT_COLOR)
+            Display.fillRect(xl-(r+l)//2, yl-r//2, r+l, r, DEFAULT_COLOR)
+            Display.fillRect(xl-r//2, yl-(r+l)//2, r, r+l, DEFAULT_COLOR)
+            Display.fillRect(xr-(r+l)//2, yr-r//2, r+l, r, DEFAULT_COLOR)
+            Display.fillRect(xr-r//2, yr-(r+l)//2, r, r+l, DEFAULT_COLOR)
 
         elif param0 == 6: # / \ or \ /
             self.fillRectRot(xl-(r+l)//2, yl-r//2, r+l, r, -angle2, DEFAULT_COLOR)
             self.fillRectRot(xr-(r+l)//2, yr-r//2, r+l, r, angle2, DEFAULT_COLOR)
 
         else:  # o o
-            self.buffer.fillCircle(xl, yl, r, DEFAULT_COLOR)
-            self.buffer.fillCircle(xr, yr, r, DEFAULT_COLOR)
+            Display.fillCircle(xl, yl, r, DEFAULT_COLOR)
+            Display.fillCircle(xr, yr, r, DEFAULT_COLOR)
             if self.blink > 0:
-                self.buffer.fillCircle(xl, yl-self.blink, r, 0)
-                self.buffer.fillCircle(xr, yr-self.blink, r, 0)
+                Display.fillCircle(xl, yl-self.blink, r, DEFAULT_BG_COLOR)
+                Display.fillCircle(xr, yr-self.blink, r, DEFAULT_BG_COLOR)
 
     #
     #
@@ -192,7 +187,7 @@ class Face:
             y=self.mouse_pos[1] - r -pos
             x, y = self.rot_pos([x, y], angle)
             for i in range(4):
-              self.buffer.drawArc(x, y, r+i, r+i+1, 70+angle, 110+angle, DEFAULT_COLOR)
+              Diaplay.drawArc(x, y, r+i, r+i+1, 70+angle, 110+angle, DEFAULT_COLOR)
 
         elif mouse_flag == 2 or mouse_flag == '^': # ^
             r=80
@@ -200,7 +195,7 @@ class Face:
             y=self.mouse_pos[1] + r -pos
             x, y = self.rot_pos([x, y], angle)
             for i in range(4):
-              self.buffer.drawArc(x, y, r+i, r+i+1, 250+angle, 290+angle, DEFAULT_COLOR)
+              Display.drawArc(x, y, r+i, r+i+1, 250+angle, 290+angle, DEFAULT_COLOR)
 
         elif mouse_flag == 3 or mouse_flag == 'o': # ^
             x=self.mouse_pos[0] + xpos
@@ -208,7 +203,7 @@ class Face:
             rx=10
             ry=20
             for i in range(4):
-              self.buffer.drawEllipse(x, y, rx+i, ry+i, DEFAULT_COLOR)
+              Display.drawEllipse(x, y, rx+i, ry+i, DEFAULT_COLOR)
        
         else:  # -
             minWidth=50
@@ -221,12 +216,12 @@ class Face:
             x=self.mouse_pos[0] - w // 2 + xpos
             y=self.mouse_pos[1] - h // 2 - pos
             if angle == 0:
-              self.buffer.fillRect(x, y, w, h, DEFAULT_COLOR)
+              Display.fillRect(x, y, w, h, DEFAULT_COLOR)
             else:
               for i in range(h):
                 x1, y1 = self.rot_pos([x, y+i], angle)
                 x2, y2 = self.rot_pos([x+w, y+i], angle)
-                self.buffer.drawLine(x1, y1, x2, y2, DEFAULT_COLOR)
+                Display.drawLine(x1, y1, x2, y2, DEFAULT_COLOR)
         return
     #
     #
@@ -235,7 +230,7 @@ class Face:
         for i in range(h):
             x1, y1 = self.rot_pos([x, y+i], angle, center)
             x2, y2 = self.rot_pos([x+w, y+i], angle, center)
-            self.buffer.drawLine(x1, y1, x2, y2, color)
+            Display.drawLine(x1, y1, x2, y2, color)
         return
     #
     #
@@ -247,7 +242,6 @@ class Face:
             if not x in self.mouse_type: continue
             self.drawFace(x)
             time.sleep(speed)
-            #self.drawFace('x')
         self.drawFace('x')
         self.moving=False
         return
@@ -259,15 +253,15 @@ class Face:
     #
     #
     def drawFace(self, idx='x', angle=0, flush=True):
-        if flush: self.buffer.clear()
+        if flush:
+            Display.clear()
         self.drawEye(self.face_type, angle1=angle)
         self.drawMouse(*self.mouse_type[idx], angle=angle)
-        if flush: self.flush()
         return
     #
     #
     def clear(self):
-        self.buffer.clear()
+        Diaplay.clear()
         return True
     #
     #
@@ -278,7 +272,7 @@ class Face:
     #
     #
     def draw(self, id: str='x', angle: int=0):
-        self.buffer.clear()
+        Display.clear()
         if id == 'talk':
             try:
                 idx=list(self.mouse_type.keys())[round(random.random() * len(self.mouse_type))]
@@ -332,41 +326,31 @@ class Face:
             if self.blink < 0 and self.blink_start_flag > self.next_blink:
                 self.start_blink()
 
-        self.flush()
+        if self.message: self.print_message(self.message)
+        if self.info: self.print_info(self.info)
+
         return
     #
     #
     def flush(self):
-        self.buffer.push(0,self.top)
-        #self.top_buffer.push(0,0)
-        #self.bottom_buffer.push(0,214)
         return
     #
     #
     def print_message(self, msg=''):
         if msg:
-            #self.top_buffer.fillRect(0,0,320,26,MSG_COLOR)
-            self.top_buffer.fillScreen(INFO_COLOR)
-            self.top_buffer.setCursor(0,2)
-            self.top_buffer.setTextColor(0, MSG_COLOR)
-            self.top_buffer.print(msg)
-            self.top_buffer.push(0,0)
-        else:
-            self.top_buffer.clear()
-        self.top_buffer.push(0,0)
+            Display.fillRect(0,0,320,26,MSG_COLOR)
+            Display.setCursor(0,2)
+            Display.setTextColor(0, MSG_COLOR)
+            Diaplay.print(msg)
         return
     #
     #
     def print_info(self, msg=''):
         if msg:
-            #self.bottom_buffer.fillRect(0,0,320,26,INFO_COLOR)
-            self.bottom_buffer.fillScreen(INFO_COLOR)
-            self.bottom_buffer.setCursor(0,2)
-            self.bottom_buffer.setTextColor(0, INFO_COLOR)
-            self.bottom_buffer.print(msg)
-        else:
-            self.bottom_buffer.clear()
-        self.bottom_buffer.push(0, 214)
+            Display.fillRect(0,214,320,26,INFO_COLOR)
+            Display.setCursor(0,215)
+            Display.setTextColor(0, INFO_COLOR)
+            Display.print(msg)
         return
     #
     #

@@ -21,6 +21,7 @@ class SG90Driver:
     self._target_v_deg = -5
     self.h_port = h_port
     self.v_port = v_port
+    self.moving=False
     self.motor(True)
   #
   #
@@ -36,6 +37,7 @@ class SG90Driver:
   #
   #
   def move(self, h_deg, v_deg, tm=0.5):
+    if self.moving: return
     if tm is True: tm=0.5
     h_deg = max(min(h_deg, 90), -90)
     v_deg = max(min(v_deg, -5), -30)
@@ -46,7 +48,7 @@ class SG90Driver:
     n = int(tm / self.delay)
     h_dg = (h_deg - self.current_pos[0]) / n
     v_dg = (v_deg - self.current_pos[1]) / n
-
+    self.moving=True
     for x in range(0, n):
       h_target_ = self.current_pos[0] + h_dg
       v_target_ = self.current_pos[1] + v_dg
@@ -56,6 +58,7 @@ class SG90Driver:
       self.current_pos = [h_target_, v_target_]
     self._last_h_deg = h_deg
     self._last_v_deg = v_deg
+    self.moving=False
     return
   #
   #
@@ -72,5 +75,6 @@ class SG90Driver:
   #
   def update(self, tm=0):
       if self._last_h_deg != self._target_h_deg or self._last_v_deg != self._target_v_deg:
+          #print("===Move", self._target_h_deg, self._target_v_deg)
           self.move(self._target_h_deg, self._target_v_deg)
       return

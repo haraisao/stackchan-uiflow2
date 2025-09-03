@@ -1,5 +1,5 @@
 #import M5
-import Face
+import test.Face_old as Face_old
 import util
 import json
 import binascii
@@ -23,7 +23,7 @@ class StackChan:
     camera.init(pixformat=camera.RGB565, framesize=camera.QVGA)
     #
     # face, motors, TTS client, ASR client
-    self.face=Face.Face()
+    self.face=Face_old.Face()
     self.set_motor()
     self.set_tts()
     self.set_asr()
@@ -121,10 +121,12 @@ class StackChan:
   # Connect Wireless LAN
   def connect_wlan(self, trial=10):
     for _ in range(trial):
-      self.wlan = util.connect_wlan(self.wlan)
       if self.wlan and self.wlan.isconnected():
         self.face.print_info("IP:" + self.wlan.ifconfig()[0])
         return
+      else:
+        self.face.print_info("Connecting...")
+        self.wlan = util.connect_wlan(self.wlan)
     self.face.print_info("WLAN not connected")
   #
   # Check connection of wireless LAN
