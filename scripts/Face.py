@@ -21,7 +21,7 @@ class Face:
     def __init__(self):
         self.blink=-100
         self.blink_start_flag=0
-        self.next_blink=80 + random.random()*40
+        self.next_blink=(80 + random.random()*40)*100
         self.top=0
         self.center=[160,120-self.top]
         self.eye_=[self.center[0],self.center[1]-20]
@@ -176,6 +176,11 @@ class Face:
             if self.blink > 0:
                 Display.fillCircle(xl, yl-self.blink, r, DEFAULT_BG_COLOR)
                 Display.fillCircle(xr, yr-self.blink, r, DEFAULT_BG_COLOR)
+                self.blink += 2
+                #print(self.blink, r)
+                if self.blink > r*2+2:
+                    self.blink=0
+                    self.blink_start_flag=0
 
     #
     #
@@ -323,8 +328,11 @@ class Face:
         else:
             self.drawFace(angle=angle, flush=False)
             #self.blink_start_flag += 1
-            if self.blink < 0 and self.blink_start_flag > self.next_blink:
-                self.start_blink()
+            #if self.blink < 0 and self.blink_start_flag > self.next_blink:
+            #    self.start_blink()
+            #print(self.blink, self.blink_start_flag, self.next_blink)
+            if  self.blink <= 0 and self.blink_start_flag > self.next_blink:
+                self.blink = 1
 
         if self.message: self.print_message(self.message)
         if self.info: self.print_info(self.info)
@@ -362,4 +370,6 @@ class Face:
             self.set_face_id(self.current_face)
         if self.current_face == 'normal':
             self.blink_start_flag += 1
+        else:
+            self.blink_start_flag=0
         return
