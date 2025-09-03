@@ -33,7 +33,7 @@ def loop():
   else:
     button_0.check()
     stackchan_0.update()
-    time.sleep_ms(100)
+    time.sleep_ms(1)
 
 
 if __name__ == '__main__':
