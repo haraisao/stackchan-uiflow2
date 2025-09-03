@@ -187,7 +187,7 @@ class Face:
             y=self.mouse_pos[1] - r -pos
             x, y = self.rot_pos([x, y], angle)
             for i in range(4):
-              Diaplay.drawArc(x, y, r+i, r+i+1, 70+angle, 110+angle, DEFAULT_COLOR)
+              Display.drawArc(x, y, r+i, r+i+1, 70+angle, 110+angle, DEFAULT_COLOR)
 
         elif mouse_flag == 2 or mouse_flag == '^': # ^
             r=80
@@ -261,7 +261,7 @@ class Face:
     #
     #
     def clear(self):
-        Diaplay.clear()
+        Display.clear()
         return True
     #
     #
@@ -341,7 +341,7 @@ class Face:
             Display.fillRect(0,0,320,26,MSG_COLOR)
             Display.setCursor(0,2)
             Display.setTextColor(0, MSG_COLOR)
-            Diaplay.print(msg)
+            Display.print(msg)
         return
     #
     #
