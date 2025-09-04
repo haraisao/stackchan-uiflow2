@@ -22,7 +22,7 @@ class Face:
         self.blink=-100
         self.blink_start_flag=0
         self.update_rate=10
-        self.next_blink=(80 + random.random()*40)*10
+        self.next_blink=(80 + random.random()*40)*self.update_rate
         self.top=0
         self.center=[160,120-self.top]
         self.eye_=[self.center[0],self.center[1]-20]
@@ -174,15 +174,31 @@ class Face:
         else:  # o o
             Display.fillCircle(xl, yl, r, DEFAULT_COLOR)
             Display.fillCircle(xr, yr, r, DEFAULT_COLOR)
-            if self.blink > 0:
+            if self.is_blinking():
                 Display.fillCircle(xl, yl-self.blink, r, DEFAULT_BG_COLOR)
                 Display.fillCircle(xr, yr-self.blink, r, DEFAULT_BG_COLOR)
-                self.blink += 2
-                #print(self.blink, r)
-                if self.blink > r*2+2:
-                    self.blink=0
-                    self.blink_start_flag=0
+                self.update_blinking(r*2 + 2)
 
+    def check_blink_time(self):
+        return (self.blink_start_flag > self.next_blink)
+
+    def is_blinking(self):
+        return (self.blink > 0 and  self.blink_start_flag > self.next_blink)
+    
+    def update_blinking(self, thr=20):
+        self.blink += 2
+        if self.blink > thr:
+            self.stop_blink()
+        return
+
+    def stop_blink(self):
+        self.blink=-100
+        self.blink_start_flag=0
+        self.next_blink=(80 + random.random()*40)*self.update_rate
+        self.message=''
+        self.info=''
+        return
+    
     #
     #
     def drawMouse(self, oRatio=0, oRatio2=0, angle=0, pos=0,
@@ -328,10 +344,6 @@ class Face:
 
         else:
             self.drawFace(angle=angle, flush=False)
-            #self.blink_start_flag += 1
-            #if self.blink < 0 and self.blink_start_flag > self.next_blink:
-            #    self.start_blink()
-            #print(self.blink, self.blink_start_flag, self.next_blink)
             if  self.blink <= 0 and self.blink_start_flag > self.next_blink:
                 self.blink = 1
 
@@ -361,18 +373,23 @@ class Face:
             Display.setTextColor(0, INFO_COLOR)
             Display.print(msg)
         return
-    #
-    #
-    def update(self):
-        if self.moving: return
-        if self.prev_face != self.current_face or \
-                self.blink_start_flag > self.next_blink:
-            #if (time.time_ns()-self.start_time)/1000000000 > 3600: self.start_time=time.time_ns()
-            #print("draw", (time.time_ns()-self.start_time)/1000000000)
-            self.draw(self.current_face)
-            self.set_face_id(self.current_face)
+    
+    def update_motion_interval(self):
         if self.current_face == 'normal':
             self.blink_start_flag += 1
         else:
             self.blink_start_flag=0
+        return
+
+    #
+    #
+    def update(self):
+        if self.moving: return
+        if self.prev_face != self.current_face or self.check_blink_time():
+            #if (time.time_ns()-self.start_time)/1000000000 > 3600: self.start_time=time.time_ns()
+            #print("draw", (time.time_ns()-self.start_time)/1000000000)
+            self.draw(self.current_face)
+            self.set_face_id(self.current_face)
+        self.update_motion_interval()
+
         return
