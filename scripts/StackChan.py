@@ -62,9 +62,11 @@ class StackChan:
       self.face.print_info("IP:" + self.wlan.ifconfig()[0])
       return
     if self.isconnected_wlan():
+        self.face.print_info("IP:" + self.wlan.ifconfig()[0])
         self.web_server.start()
     else:
       if self.connect_wlan(10):
+        self.face.print_info("IP:" + self.wlan.ifconfig()[0])
         self.web_server.start()
     return
   #

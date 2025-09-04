@@ -183,15 +183,15 @@ class Face:
         return (self.blink_start_flag > self.next_blink)
 
     def is_blinking(self):
-        return (self.blink > 0 and  self.blink_start_flag > self.next_blink)
+        return (self.blink > 0)
     
     def update_blinking(self, thr=20):
         self.blink += 2
         if self.blink > thr:
-            self.stop_blink()
+            self.stop_blinking()
         return
 
-    def stop_blink(self):
+    def stop_blinking(self):
         self.blink=-100
         self.blink_start_flag=0
         self.next_blink=(80 + random.random()*40)*self.update_rate
@@ -344,7 +344,7 @@ class Face:
 
         else:
             self.drawFace(angle=angle, flush=False)
-            if  self.blink <= 0 and self.blink_start_flag > self.next_blink:
+            if  (not self.is_blinking()) and self.check_blink_time():
                 self.blink = 1
 
         if self.message: self.print_message(self.message)
