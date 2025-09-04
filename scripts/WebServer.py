@@ -12,10 +12,12 @@ class WebServer:
     self.port = port
     self.reader = comm.HttpReader(top)
     self.server = comm.SocketServer(self.reader, "Web", "", port)
+    self.started=False
   
   def renew(self):
     self.server.stop()
     self.server=comm.SocketServer(self.reader, "Web", "", self.port)
+    self.started=False
     return
   
   def registerCommand(self, name, func):
@@ -30,13 +32,18 @@ class WebServer:
     self.server.reader.registerCommand(name, func)
     return
   
+  def is_started(self):
+    return self.started
+
   def start(self):
     self.server.start()
+    self.started=True
     return
 
   def stop(self):
     try:
       self.server.terminate()
+      self.started=False
     except:
       pass
     return

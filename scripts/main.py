@@ -22,7 +22,7 @@ def setup():
   wlan = stackchan_0.connect_wlan(10)
   stackchan_0.init_web(80)
   button_0 = Button('Btn1', 0, 220, 100, 20)
-  button_0.set_callback('stackchan_0.connect_wlan')
+  button_0.set_callback('stackchan_0.start_web_server')
 
 
 def loop():
@@ -33,7 +33,7 @@ def loop():
   else:
     button_0.check()
     stackchan_0.update()
-    time.sleep_ms(1)
+    time.sleep_ms(10)
 
 
 if __name__ == '__main__':

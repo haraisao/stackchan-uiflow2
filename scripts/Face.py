@@ -21,7 +21,8 @@ class Face:
     def __init__(self):
         self.blink=-100
         self.blink_start_flag=0
-        self.next_blink=(80 + random.random()*40)*100
+        self.update_rate=10
+        self.next_blink=(80 + random.random()*40)*10
         self.top=0
         self.center=[160,120-self.top]
         self.eye_=[self.center[0],self.center[1]-20]
@@ -366,6 +367,8 @@ class Face:
         if self.moving: return
         if self.prev_face != self.current_face or \
                 self.blink_start_flag > self.next_blink:
+            #if (time.time_ns()-self.start_time)/1000000000 > 3600: self.start_time=time.time_ns()
+            #print("draw", (time.time_ns()-self.start_time)/1000000000)
             self.draw(self.current_face)
             self.set_face_id(self.current_face)
         if self.current_face == 'normal':
