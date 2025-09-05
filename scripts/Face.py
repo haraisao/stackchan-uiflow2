@@ -12,6 +12,8 @@ import machine
 import time
 import math
 
+import comm
+
 INFO_COLOR=0xffff00
 MSG_COLOR=0xffffff
 DEFAULT_COLOR=0xffffff
@@ -21,7 +23,7 @@ class Face:
     def __init__(self):
         self.blink=-100
         self.blink_start_flag=0
-        self.update_rate=10
+        self.update_rate=1
         self.next_blink=(80 + random.random()*40)*self.update_rate
         self.top=0
         self.center=[160,120-self.top]
@@ -186,7 +188,7 @@ class Face:
         return (self.blink > 0)
     
     def update_blinking(self, thr=20):
-        self.blink += 2
+        self.blink += 8
         if self.blink > thr:
             self.stop_blinking()
         return
@@ -388,6 +390,7 @@ class Face:
         if self.prev_face != self.current_face or self.check_blink_time():
             #if (time.time_ns()-self.start_time)/1000000000 > 3600: self.start_time=time.time_ns()
             #print("draw", (time.time_ns()-self.start_time)/1000000000)
+            print(comm.get_now_str2())
             self.draw(self.current_face)
             self.set_face_id(self.current_face)
         self.update_motion_interval()

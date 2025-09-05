@@ -43,6 +43,11 @@ def get_now_str():
     #lt=ntptime.gmtime()
     return "%s, %02d %s %d %02d:%02d:%02d GMT" % (DAY_A[lt[3]], lt[2], MON_A[lt[1]-1], lt[0], lt[4], lt[5], lt[6])
 
+def get_now_str2():
+    lt=g_rtc.datetime()
+    #lt=ntptime.gmtime()
+    return "%s, %02d %s %d %02d:%02d:%02d %d GMT" % (DAY_A[lt[3]], lt[2], MON_A[lt[1]-1], lt[0], lt[4], lt[5], lt[6], lt[7])
+
 ######
 # Thread Class
 ###
