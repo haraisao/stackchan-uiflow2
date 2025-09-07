@@ -3,7 +3,7 @@
 from M5 import *
 import machine
 import time
-import comm
+import comm2 as comm
 
 
 class WebServer:
@@ -46,6 +46,10 @@ class WebServer:
       self.started=False
     except:
       pass
+    return
+  
+  def update(self, timeout=0.1):
+    self.server.spin_once(timeout)
     return
   
 

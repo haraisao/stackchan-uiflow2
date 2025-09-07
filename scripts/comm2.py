@@ -12,8 +12,6 @@ import sys
 import os
 import socket
 import select
-import time
-import struct
 import json
 
 from util import get_now_str, mount_sd
@@ -64,14 +62,6 @@ class SocketPort(Thread):
   #
   #  Set values...
   #
-  def setHost(self, name):
-    self.host = name
-    return 
-
-  def setPort(self, port):
-    self.port = port
-    return 
-
   def setClientMode(self):
     self.client_adaptor = True
     return 
@@ -104,25 +94,22 @@ class SocketPort(Thread):
       self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
       self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
       self.socket.bind((self.host, self.port))
-
     except:
       print("Error in bind %s:%d" & (self.host, self.port))
       self.close()
       return -1
-
     return 1
 
   #
   # Connect
   #
-  def connect(self, async_flag=True):
+  def connect(self, async_flag=False):
     if self.mainloop :
       return 1
 
     try:
       self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
       self.socket.connect((self.host, self.port))
-
     except:
       print("Error in connect %s:%d "  % (self.host, self.port))
       self.close()
@@ -131,7 +118,6 @@ class SocketPort(Thread):
     if async_flag :
       print("Start read thread %s" % self.name)
       self.start()
-
     return 1
 
   #
@@ -161,11 +147,9 @@ class SocketPort(Thread):
           return data
         else:
           return  -1
-
     except:
       print("Error in receive_data")
       self.terminate()
-
     return data
 
   #
@@ -207,11 +191,9 @@ class SocketPort(Thread):
 
       if data  == -1:
         self.terminate()
-
       elif data or data is None:
-        if self.reader.parse(data) or data is None:
+        if data is None or self.reader.parse(data):
           self.mainloop=False
-
       else :
         print("Umm...: %s" % self.name)
         print(data)
@@ -263,10 +245,10 @@ class SocketPort(Thread):
     if not self.socket :
       print( "Error: Not connected")
       return None
+
     try:
       if type(msg) == str: msg=msg.encode()
       self.socket.sendall(msg)
-
     except:
       print( "Socket error in send")
       self.close()
@@ -296,10 +278,12 @@ class SocketServer(SocketPort):
     self.module_name=__name__+'.SocketServer'
 
     self.setServerMode()
-    self.cometManager = CometManager(self)
     self.bind()
     self.socket.listen(3)
     gc.enable()
+
+    self.poll=select.poll()
+
 
   #
   # Accept new request, create a service 
@@ -310,37 +294,26 @@ class SocketServer(SocketPort):
       self.service_id += 1
       name = self.name+":service:%d" % self.service_id
       reader = self.reader.duplicate()
-
       newadaptor = SocketService(self, reader, name, conn, addr)
-
       if flag :
         newadaptor.start()
         #gc.collect()
-        return
-
+        return None
       return newadaptor
-
     except:
       print("ERROR in accept_service")
       pass
-
     return None
 
   #
   #  Wait request from a client 
   #      [Overwrite super's method]
   #
-  def accept_service_loop(self, lno=1, timeout=0):
+  def accept_service_loop(self, lno=1, timeout=1.0):
     print( "Wait for accept: %s(%s:%d)" % (self.name, self.host, self.port))
     self.socket.listen(lno)
     while self.mainloop:
-      res = self.wait_for_read(timeout) 
-      if res == 1:
-        self.accept_service()
-      elif res == -1:
-        self.terminate()
-      else:
-        pass
+      self.spin_once(timeout)
     
     print( "Terminate all service %s(%s:%d)" % (self.name, self.host, self.port))
     self.close_service()
@@ -433,36 +406,6 @@ class SocketService(SocketPort):
     self.mainloop=False
     #print("terminate service", self)
     return
-
-#
-#  Commands (Comet)
-#
-CloseCodeNum={
-     'Normal':1000,
-     'GoingAway':1001,
-     'ProtocolError':1002,
-     'UnsupportedData':1003,
-     'Reserved':1004,
-     'NoStatus':1005,
-     'Abnormal':1006,
-     'InvalidFrame':1007,
-     'PolicyViolation':1008,
-     'MessageTooBig':1009,
-     'MandatoryExt.':1010,
-     'InetranalError.':1011,
-     'ServiceRestart.':1012,
-     'TryAgain.':1013,
-     'TLS_handshake.':1015,
-}
-
-Opcode={
-     'ContinuationFrame.':0,
-     'TextFrame.':1,
-     'BinaryFrame.':2,
-     'ConnectionCloseFrame.':8,
-     'PingFrame.':9,
-     'PongFrame.':10,
-}
 
 #
 #  Foundmental reader class 
@@ -652,8 +595,6 @@ class HttpReader(CommReader):
 
     self.commands={
         '/hello' : self.hello,
-        '/comet_request' : self.cometRequest,
-        '/comet_event' : self.cometTrigger 
                   } 
   #
   #  duplicate...
@@ -676,22 +617,17 @@ class HttpReader(CommReader):
     fname = header["Http-FileName"].split('?')
 
     if cmd == "GET":
-      if 'Connection' in header and header['Connection'] == "Upgrade" and 'Upgrade' in header:
+      contents = get_file_contents(fname[0], self.dirname)
+      ctype = get_content_type(fname[0])
+      if contents is None:
         response = response404()
       else:
-        contents = get_file_contents(fname[0], self.dirname)
-        ctype = get_content_type(fname[0])
-        if contents is None:
-          response = response404()
-        else:
-          response = response200(ctype, contents)
-        self.sendResponse(response)
+        response = response200(ctype, contents)
+      self.sendResponse(response)
 
     elif cmd == "POST":
-      #print(fname[0], self.commands)
       if fname[0] in self.commands :
         callback_func_ = self.commands[fname[0]]
-        #print(fname[0], data)
         if isinstance(callback_func_, Command):
           #print("execute")
           response = callback_func_.execute(data)
@@ -727,52 +663,6 @@ class HttpReader(CommReader):
     print("Hello:", data)
     response = response200('application/json', json.dumps({"result": "OK"}))
     return response
-
-  ###############
-  # for COMET
-  #
-  def cometRequest(self, data):
-    Data = parseData(data)
-    if "id" in Data :
-      self.registerHandler(Data)
-      return None
-    else:
-      return response400()
-  #
-  #
-  #
-  def cometTrigger(self, data):
-    Data = parseData(data)
-    res = {}
-    if "id" in Data:
-      self.callHandler(Data)
-      res["result"] = "OK"
-    else:
-      res["result"] = "ERROR"
-
-    res["date"] = get_now_str()
-    return  response200("application/json", json.dumps(res))
-
-  #
-  #
-  #
-  def registerHandler(self, data):
-    server = self.getServer()
-    server.cometManager.registerHandler(self, data['id'], data)
-    return
-
-  #
-  #  for WebSocket
-  #
-  def callHandler(self, data):
-    server = self.getServer()
-    server.cometManager.callHandler(data['id'], data)
-    return
-
-  #
-  #
-  def terminate(self):
-    return
 
 ############################################
 # CommCommand: parse the reveived message
@@ -903,7 +793,6 @@ class HttpCommand(CommCommand):
   #
   #
   def checkMessage(self, buff, offset=0, reader=None):
-    #print("HttpCommand.checkMessage")
     pos = self.parseHttpdHeader( buff, offset)
     if pos > 0 :
       if reader is None: reader=self.reader
@@ -915,7 +804,6 @@ class HttpCommand(CommCommand):
   #
   #
   def parseHttpdHeader(self, buff, offset=0):
-    #print("HttpCommand.parseHttpdHeader")
     self.header = {}
     self.data = ""
 
@@ -960,65 +848,6 @@ class HttpCommand(CommCommand):
         res[key.strip()] = val.strip()
     return res
 
-######################################33
-#     CometManager
-#
-class CometManager:
-  #
-  # Constructor
-  #
-  def __init__(self, server):
-    self.server = server
-    self.long_pollings = {}
-
-  #
-  #
-  #
-  def resieter(self, reader, id):
-    self.long_pollings[id] = reader
-
-  #
-  #
-  #
-  def registerHandler(self, reader, id, data):
-    self.long_pollings[id] = reader
-    return
-
-  #
-  #
-  #
-  def callHandler(self, id, data):
-    res = {}
-    res['date'] = get_now_str()
-    res['message'] = "Push message"
-
-    if id == "all":
-      self.response_all(res, "application/json")
-    else:
-      self.response(id, res, "application/json")
-    return
-
-  #
-  #
-  #
-  def response(self, id, json_data, ctype="text/plain"):
-    reader = self.long_pollings[id]
-    if reader :
-      json_data['id'] = id
-      json_data['result'] = ""
-
-      contents = json.dumps(json_data)
-      responsemsg = response200(ctype, contents)
-      reader.sendResponse(responsemsg)
-      self.long_pollings[id] = None
-
-  #
-  #
-  #
-  def response_all(self, json_data, ctype="text/plain"):
-    keys = self.long_pollings.keys()
-    for k in  keys :
-      self.response(k, json_data, ctype)
 
 ##################################################
 # Functoins

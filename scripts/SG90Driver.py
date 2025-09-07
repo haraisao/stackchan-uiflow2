@@ -22,6 +22,8 @@ class SG90Driver:
     self.h_port = h_port
     self.v_port = v_port
     self.moving=False
+    self.current_pos=[0,0]
+    self.start_time=time.time()
     self.motor(True)
   #
   #
@@ -36,8 +38,9 @@ class SG90Driver:
     return
   #
   #
-  def move(self, h_deg, v_deg, tm=0.5):
-    if self.moving: return
+  def move(self, h_deg, v_deg, tm=0.5, force=False):
+    if not force and self.moving:
+      return
     if tm is True: tm=0.5
     h_deg = max(min(h_deg, 90), -90)
     v_deg = max(min(v_deg, -5), -30)
@@ -59,6 +62,7 @@ class SG90Driver:
     self._last_h_deg = h_deg
     self._last_v_deg = v_deg
     self.moving=False
+    self.start_time=time.time()
     return
   #
   #
@@ -66,8 +70,10 @@ class SG90Driver:
     if flag:
         self.h_motor=self.create_pwm(self.h_port) # PortA-> 2, PortC -> 17
         self.v_motor=self.create_pwm(self.v_port)  # PortB -> 9
-        self.current_pos=[0,0]
+        self.motor_state=True
+        self.move(self._target_h_deg, self._target_v_deg)
     else:
+        self.motor_state=False
         self.h_motor.deinit()
         self.v_motor.deinit()
     return
@@ -76,5 +82,15 @@ class SG90Driver:
   def update(self, tm=0):
       if self._last_h_deg != self._target_h_deg or self._last_v_deg != self._target_v_deg:
           #print("===Move", self._target_h_deg, self._target_v_deg)
-          self.move(self._target_h_deg, self._target_v_deg)
+          if self.motor_state:
+              self.move(self._target_h_deg, self._target_v_deg)
+          else:
+              print("wake up", self._target_h_deg, self._target_v_deg)
+              self.motor(True)
+              self.move(self._target_h_deg, self._target_v_deg, force=True)
+      else:
+         if self.motor_state and time.time() - self.start_time > 120:
+            print("sleep...")
+            self.motor(False)
+            self.moving=False
       return

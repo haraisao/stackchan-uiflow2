@@ -1,18 +1,22 @@
-#import M5
-import Face
-import util
+import M5
 import json
 import time
 import binascii
 import camera
+import gc
 
+import Face2 as Face
+#import Face
+import util
 import WebServer
+
 
 #
 # Stack-chan Main
 class StackChan:
   def __init__(self):
     util.mount_sd()
+    gc.enable()
     try:
       self.config=json.loads(util.get_file_contents("/sd/stackchan.json"))
     except:
@@ -25,13 +29,17 @@ class StackChan:
     #
     # face, motors, TTS client, ASR client
     self.face=Face.Face()
+    self.web_server=None
+    self.motor=None
     self.set_motor()
+    self.tts=None
     self.set_tts()
+    self.asr=None
     self.set_asr()
 
   #
   # Create web server
-  def init_web(self, n=80):
+  def init_web(self, n=80, start=False):
     if  'web_server' in self.config:
       try:
         port = int(self.config['web_server'])
@@ -53,21 +61,26 @@ class StackChan:
     if self.asr:
         self.web_server.registerCommand("/asr", self.asr.set_request)
 
-    self.start_web_server()
+    if start:
+      self.start_web_server()
     return
   #
   # Start web service thread.
   def start_web_server(self):
+    if self.web_server is None:
+      self.init_web(start=False)
+    '''
     if self.web_server.is_started():
       self.face.print_info("IP:" + self.wlan.ifconfig()[0])
       return
+    '''
     if self.isconnected_wlan():
         self.face.print_info("IP:" + self.wlan.ifconfig()[0])
-        self.web_server.start()
+        #self.web_server.start()
     else:
       if self.connect_wlan(10):
         self.face.print_info("IP:" + self.wlan.ifconfig()[0])
-        self.web_server.start()
+        #self.web_server.start()
     return
   #
   # Setup motor driver
@@ -91,8 +104,8 @@ class StackChan:
     return
   #
   # Setup Text-to-speach(TTS) client
-  def set_tts(self):
-    tts_name = 'google'
+  def set_tts(self, name='google'):
+    tts_name = name
     if 'tts' in self.config:
       tts_name = self.config['tts']
 
@@ -108,8 +121,8 @@ class StackChan:
     return
   #
   # Setup Automatic-speech-recognition(ASR) client
-  def set_asr(self):
-    asr_name = 'google'
+  def set_asr(self, name='google'):
+    asr_name = name
     if 'asr' in self.config:
       asr_name = self.config['asr']
 
@@ -214,9 +227,15 @@ class StackChan:
       pass
     return True
   #
+  #
+  def show_battery_level(self):
+    self.face.print_message('Battery: %d' % M5.Power.getBatteryLevel())
+    return
+  #
   # Spin once
   def update(self):
-    #print("--update")
+    if self.web_server:
+      self.web_server.update()
     self.face.update()
     if self.motor:
       self.motor.update()

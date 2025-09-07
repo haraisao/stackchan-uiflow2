@@ -99,3 +99,43 @@ def scan_wlan(wlan=None):
         wlan.config(reconnects=3)
     aps_=wlan.scan()
     return [x[0].decode() for x in aps_]
+
+
+
+import ntptime
+import machine
+
+DAY_A = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+MON_A = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+g_rtc = machine.RTC()
+
+TZONE=9
+
+def setDatetime(year, month, date, hour, minite, second):
+  g_rtc.init((year, month, date, hour, minite, second, 0, 0))
+  return
+
+def set_ntptime():
+  tm=ntptime.gmtime()
+  g_rtc.init(tm)
+  return
+
+def get_now_str():
+    lt=g_rtc.datetime()
+    if lt[0] < 2000:
+        try:
+            ntptime.settime()
+        except:
+            pass
+    #lt=ntptime.gmtime()
+    return "%s, %02d %s %d %02d:%02d:%02d GMT" % (DAY_A[lt[3]], lt[2], MON_A[lt[1]-1], lt[0], lt[4], lt[5], lt[6])
+
+def get_now_str2():
+    lt=g_rtc.datetime()
+    if lt[0] < 2000:
+        try:
+            ntptime.settime()
+        except:
+            pass
+    #lt=ntptime.gmtime()
+    return "%s, %02d %s %d %02d:%02d:%02d.%d GMT" % (DAY_A[lt[3]], lt[2], MON_A[lt[1]-1], lt[0], lt[4], lt[5], lt[6], lt[7])

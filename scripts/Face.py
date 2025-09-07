@@ -11,8 +11,8 @@ import random
 import machine
 import time
 import math
-
-import comm
+import gc
+import util
 
 INFO_COLOR=0xffff00
 MSG_COLOR=0xffffff
@@ -388,11 +388,11 @@ class Face:
     def update(self):
         if self.moving: return
         if self.prev_face != self.current_face or self.check_blink_time():
-            #if (time.time_ns()-self.start_time)/1000000000 > 3600: self.start_time=time.time_ns()
-            #print("draw", (time.time_ns()-self.start_time)/1000000000)
-            print(comm.get_now_str2())
+            if (time.time_ns()-self.start_time)/1000000000 > 86400: self.start_time=time.time_ns()
+            print("draw", (time.time_ns()-self.start_time)/1000000000,
+                    util.get_now_str2(), gc.mem_free())
             self.draw(self.current_face)
             self.set_face_id(self.current_face)
         self.update_motion_interval()
-
+        #gc.collect()
         return

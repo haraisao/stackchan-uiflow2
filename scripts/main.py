@@ -8,25 +8,26 @@ import time
 
 stackchan_0 = None
 button_0 = None
-
-wlan = None
+button_1 = None
 
 def setup():
-  global stackchan_0, button_0, wlan
+  global stackchan_0, button_0, button_1
 
   M5.begin()
   Widgets.setRotation(1)
   Widgets.fillScreen(0x000000)
 
   stackchan_0 = StackChan()
-  wlan = stackchan_0.connect_wlan(10)
   stackchan_0.init_web(80)
   button_0 = Button('Btn1', 0, 220, 100, 20)
   button_0.set_callback('stackchan_0.start_web_server')
+  button_1 = Button('Btn2', 220, 220, 100, 20)
+  button_1.set_callback('stackchan_0.show_battery_level')
 
 
 def loop():
-  global stackchan_0, button_0, wlan
+  global stackchan_0, button_0, button_1
+
   M5.update()
   if 0 < (M5.Touch.getCount()):
     button_0.check_tap()
@@ -47,4 +48,3 @@ if __name__ == '__main__':
       print_error_msg(e)
     except ImportError:
       print("please update to latest firmware")
-
