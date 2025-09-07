@@ -31,8 +31,10 @@ def loop():
   M5.update()
   if 0 < (M5.Touch.getCount()):
     button_0.check_tap()
+    button_1.check_tap()
   else:
     button_0.check()
+    button_1.check()
     stackchan_0.update()
     time.sleep_ms(150)
 
