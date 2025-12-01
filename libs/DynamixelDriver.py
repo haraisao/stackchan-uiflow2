@@ -5,6 +5,8 @@ import machine
 from machine import UART
 import struct
 import math
+import random
+import time
 
 ########## Variables
 #
@@ -230,6 +232,8 @@ class DynamixelDriver:
         self._torque = True
         self._initialzed = False
         self.control_timer=machine.Timer(2)
+        self.rand_motion = False
+        self.start_time=time.time()
     #
     #
     def setTorque(self, flag):
@@ -279,6 +283,7 @@ class DynamixelDriver:
         if force_update:
             for ctrl in self._controls:
                 ctrl.update()
+        self.start_time=time.time()
         return
     #
     #
@@ -287,5 +292,16 @@ class DynamixelDriver:
     #
     #
     def update(self):
+        spend_time = time.time() - self.start_time
+        if self.rand_motion and spend_time > random.random() * 30 + 10:
+            self.random_motion()
         self.control()
         return
+    
+    def random_motion(self):
+        self._target_h_deg = int(random.random() * 20) - 10
+        self._target_v_deg = int(random.random() * (-30) )
+        self.move(self._target_h_deg, self._target_v_deg)
+
+    def toggle_rand_motion(self):
+        self.rand_motion = not self.rand_motion

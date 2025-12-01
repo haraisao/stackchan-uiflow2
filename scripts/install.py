@@ -26,7 +26,7 @@ def install_files(src_dir,to_dir='/flash/libs'):
 
 def setup():
     install_files('libs', '/flash/libs')
-    copy_file('config/stackchan.json', '/sd')
-    copy_file('config/wlan.json', '/sd')
-    copy_file('config/apikey.txt', '/sd')
+    #copy_file('config/stackchan.json', '/sd')
+    #copy_file('config/wlan.json', '/sd')
+    #copy_file('config/apikey.txt', '/sd')
     install_files('apps', '/flash/apps')

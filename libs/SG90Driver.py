@@ -4,7 +4,7 @@
 from M5 import *
 import machine
 import time
-import math
+import random
 
 ######
 #
@@ -31,6 +31,7 @@ class SG90Driver:
     self.moving=False
     self.current_pos=[0,0]
     self.start_time=time.time()
+    self.rand_motion = False
     self.motor(True)
   #
   #
@@ -84,6 +85,14 @@ class SG90Driver:
         self.h_motor.deinit()
         self.v_motor.deinit()
     return
+  
+  def random_motion(self):
+     self._target_h_deg = int(random.random() * 20) - 10
+     self._target_v_deg = int(random.random() * (-30) )
+     #print(self._target_h_deg, self._target_v_deg)
+
+  def toggle_rand_motion(self):
+     self.rand_motion = not self.rand_motion
   #
   #
   def update(self, tm=0):
@@ -96,8 +105,14 @@ class SG90Driver:
               self.motor(True)
               self.move(self._target_h_deg, self._target_v_deg, force=True)
       else:
-         if self.motor_state and time.time() - self.start_time > 120:
-            print("sleep...")
-            self.motor(False)
-            self.moving=False
+          spend_time = time.time() - self.start_time
+          if self.rand_motion and spend_time > random.random() * 30 + 10:
+              self.random_motion()
+          elif self.motor_state and spend_time > 120:
+              print("sleep...")
+              self.motor(False)
+              self.moving=False
+
+             
+        
       return

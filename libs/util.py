@@ -32,8 +32,11 @@ def load_conf(fname):
     keys=conts.split("\n")
     res={}
     for x in keys:
-        k,v = x.split("=")
-        res[k]=v
+        try:
+            k,v = x.split("=")
+            res[k]=v
+        except:
+            pass
     return res
 #
 #
