@@ -6,5 +6,6 @@
     "tts_ip": "192.168.0.100",
     "asr": "google",
     "asr_ip": "192.168.0.100",
-    "web_server": "80"
+    "web_server": "80",
+    "vflip": 1
 }

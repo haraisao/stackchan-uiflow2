@@ -19,7 +19,11 @@ MSG_COLOR=0xffffff
 DEFAULT_COLOR=0xffffff
 DEFAULT_BG_COLOR=0x000000
 
+################
+# Stack-chan Face with double buffering
 class Face:
+    #
+    #
     def __init__(self):
         self.buffer=Display.newCanvas(320,188,16,True)
         self.blink=-100
@@ -82,6 +86,7 @@ class Face:
     #
     #
     def start_blink(self):
+        if self.moving: return
         self.moving = True
         self.blink=0
         self.blink_start_flag = -100
@@ -106,6 +111,28 @@ class Face:
         try:
             idx=int(random.random() * len(self.motions))
             return self.motions[idx]
+        except:
+            return ""
+        
+    def start_talk(self, period=100):
+        if self.moving: time.sleep(0.5)
+        if self.moving: return
+        self.moving=True
+        self.blink_timer.init(mode=machine.Timer.PERIODIC, period=period, callback=self.callback_talk)
+        self.draw(self.current_face)
+
+    #
+    def stop_talk(self):
+        self.blink_timer.deinit()
+        self.moving=False
+        self.draw(self.current_face)
+        return
+    
+    def callback_talk(self, tm):
+        try:
+            idx=list(self.mouse_type.keys())[int(random.random() * len(self.mouse_type))]
+            self.drawFace(idx)
+            #time.sleep(self.talk_intval)
         except:
             return ""
     #
@@ -186,19 +213,23 @@ class Face:
                 self.buffer.fillCircle(xl, yl-self.blink, r, DEFAULT_BG_COLOR)
                 self.buffer.fillCircle(xr, yr-self.blink, r, DEFAULT_BG_COLOR)
                 self.update_blinking(r*2 + 2)
-
+    #
+    #
     def check_blink_time(self):
         return (self.blink_start_flag > self.next_blink)
-
+    #
+    #
     def is_blinking(self):
         return (self.blink > 0)
-    
+    #
+    #
     def update_blinking(self, thr=20):
         if self.blink > thr:
             self.stop_blinking()
         self.blink += 10
         return
-
+    #
+    #
     def stop_blinking(self):
         self.blink=-100
         self.blink_start_flag=0
@@ -206,7 +237,6 @@ class Face:
         if self.message: self.print_message()
         if self.info: self.print_info()
         return
-    
     #
     #
     def drawMouse(self, oRatio=0, oRatio2=0, angle=0, pos=0,
@@ -363,17 +393,15 @@ class Face:
     #
     def flush(self):
         self.buffer.push(0,self.top)
-        #self.top_buffer.push(0,0)
-        #self.bottom_buffer.push(0,214)
         return
     #
     #
-    def print_message(self, msg=''):
+    def print_message(self, msg='', color=0xffffff):
         self.message=msg
         if msg:
-            self.top_buffer.fillRect(0,0,320,26,0xffffff)
+            self.top_buffer.fillRect(0,0,320,26,color)
             self.top_buffer.setCursor(0,2)
-            self.top_buffer.setTextColor(0, 0xffffff)
+            self.top_buffer.setTextColor(0, color)
             self.top_buffer.print(msg)
             self.top_buffer.push(0,0)
         else:
@@ -382,35 +410,31 @@ class Face:
         return
     #
     #
-    def print_info(self, msg=''):
+    def print_info(self, msg='',color=0xffff00):
         self.info=msg
         if msg:
-            self.bottom_buffer.fillRect(0,0,320,26,0xffff00)
+            self.bottom_buffer.fillRect(0,0,320,26,color)
             self.bottom_buffer.setCursor(0,2)
-            self.bottom_buffer.setTextColor(0, 0xffff00)
+            self.bottom_buffer.setTextColor(0, color)
             self.bottom_buffer.print(msg)
         else:
             self.bottom_buffer.clear()
         self.bottom_buffer.push(0,214)
         return
-    
+    #
+    #
     def update_motion_interval(self):
         if self.current_face == 'normal':
             self.blink_start_flag += 1
         else:
             self.blink_start_flag=0
         return
-
     #
     #
     def update(self):
         if self.moving: return
         if self.prev_face != self.current_face or self.check_blink_time():
-            #if (time.time_ns()-self.start_time)/1000000000 > 86400: self.start_time=time.time_ns()
-            #print("draw", (time.time_ns()-self.start_time)/1000000000,
-            #       util.get_now_str2(), Power.getBatteryLevel())
             self.draw(self.current_face)
             self.set_face_id(self.current_face)
         self.update_motion_interval()
-        #gc.collect()
         return

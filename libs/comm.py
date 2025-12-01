@@ -12,8 +12,6 @@ import sys
 import os
 import socket
 import select
-import time
-import struct
 import json
 
 from util import get_now_str, mount_sd
@@ -39,11 +37,9 @@ class Thread:
 # Raw Socket Adaptor
 #
 #   threading.Tread <--- SocketPort
-#
 class SocketPort(Thread):
   #
   # Contsructor
-  #
   def __init__(self, reader, name, host, port):
     super().__init__(self)
     self.module_name=__name__+'.SocketPort'
@@ -60,69 +56,55 @@ class SocketPort(Thread):
     self.server_adaptor = None
     self.mainloop = False
     self.debug = False
-
   #
   #  Set values...
-  #
-  def setHost(self, name):
-    self.host = name
-    return 
-
-  def setPort(self, port):
-    self.port = port
-    return 
-
   def setClientMode(self):
     self.client_adaptor = True
     return 
-
+  #
+  #
   def setServerMode(self):
     self.client_adaptor = False
     return 
-
+  #
+  #
   def setServer(self, srv):
     self.server_adaptor = srv
     return 
-
+  #
+  #
   def getCommand(self):
     try:
       return self.reader.command
     except:
       return None
-
+  #
+  #
   def shutdown(self, cmd):
     if self.socket :
         self.socket.close()
         self.socket=None
-        #self.socket.shutdown(cmd)
     return
   #
   # Bind socket 
-  #
   def bind(self):
     try:
       self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
       self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
       self.socket.bind((self.host, self.port))
-
     except:
       print("Error in bind %s:%d" & (self.host, self.port))
       self.close()
       return -1
-
     return 1
-
   #
   # Connect
-  #
-  def connect(self, async_flag=True):
+  def connect(self, async_flag=False):
     if self.mainloop :
       return 1
-
     try:
       self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
       self.socket.connect((self.host, self.port))
-
     except:
       print("Error in connect %s:%d "  % (self.host, self.port))
       self.close()
@@ -131,26 +113,20 @@ class SocketPort(Thread):
     if async_flag :
       print("Start read thread %s" % self.name)
       self.start()
-
     return 1
-
   #
   #  Wait for comming data...
-  #
   def wait_for_read(self, timeout=1.0):
     try:
       rready, wready, xready = select.select([self.socket],[],[], timeout)
-      #print("--wait", self, timeout)
       if len(rready) :
         return 1
       return 0
     except:
       self.terminate()
       return -1
-
   #
   # Receive data
-  #
   def receive_data(self, bufsize=8192, timeout=10.0):
     data = None
     try:
@@ -161,79 +137,62 @@ class SocketPort(Thread):
           return data
         else:
           return  -1
-
     except:
       print("Error in receive_data")
       self.terminate()
-
     return data
-
   #
   #  Thread oprations...
-  #
   def start(self):
     self.mainloop = True
     if self.socket :
       Thread.start(self)
-
+  #
+  #
   def run(self):
     if self.client_adaptor: 
       self.message_receiver()
     else:
       self.accept_service_loop()
-
   #
   #  Manage each service
-  #
   def remove_service(self, adaptor):
      try:
        self.com_ports.remove(adaptor)
      except:
        pass
-
   #
   #  Event loop: this metho should be overwrite by suceessing classes
-  #
   def accept_service_loop(self, lno=5, timeout=1.0):
     print("No accept_service_loop defined")
     return 
-
   #
   #  Background job ( message receiver )
-  #
   def message_receiver(self, timeout=1.0):
     while self.mainloop:
       data = self.receive_data(timeout=timeout)
 
       if data  == -1:
         self.terminate()
-
       elif data or data is None:
-        if self.reader.parse(data) or data is None:
+        if data is None or self.reader.parse(data):
           self.mainloop=False
-
       else :
         print("Umm...: %s" % self.name)
         print(data)
 
     self.terminate()
-    #print("Read thread terminated: %s" % self.name)
     return
-
   #
   #  close socket
-  #
   def close_service(self):
     for s in  self.com_ports :
       s.terminate()
-
   #
   #  close socket (lower operation)
-  #
   def close(self):
     while self.com_ports:
       sock=self.com_ports.pop()
-      #sock.shutdown(socket.SHUT_RDWR)
       sock.shutdown(0)
       sock.close()
 
@@ -243,10 +202,8 @@ class SocketPort(Thread):
     if self.socket :
       self.socket.close()
       self.socket = None
-
   #
   #  Stop background job
-  #
   def terminate(self):
     try:
       self.reader.terminate()
@@ -255,32 +212,27 @@ class SocketPort(Thread):
     self.close_service()
     self.mainloop = False
     self.close()
-
   #
   #  Send message
-  #
   def send(self, msg, name=None):
     if not self.socket :
       print( "Error: Not connected")
       return None
+
     try:
       if type(msg) == str: msg=msg.encode()
       self.socket.sendall(msg)
-
     except:
       print( "Socket error in send")
       self.close()
-
   # 
   #  find
-  #
   def readers(self):
     res = []
     for p in self.com_ports:
        res.append(p.reader)
 
     return flatten(res)
-
 
 ############################################
 #  Server Adaptor
@@ -289,65 +241,50 @@ class SocketPort(Thread):
 class SocketServer(SocketPort):
   #
   # Constructor
-  #
   def __init__(self, reader, name, host, port, debug=False):
     SocketPort.__init__(self, reader, name, host, port)
     self.debug = debug
     self.module_name=__name__+'.SocketServer'
 
     self.setServerMode()
-    self.cometManager = CometManager(self)
     self.bind()
     self.socket.listen(3)
     gc.enable()
 
+    self.poll=select.poll()
   #
   # Accept new request, create a service 
-  #
   def accept_service(self, flag=True):
     try:
       conn, addr = self.socket.accept()
       self.service_id += 1
       name = self.name+":service:%d" % self.service_id
       reader = self.reader.duplicate()
-
       newadaptor = SocketService(self, reader, name, conn, addr)
-
       if flag :
         newadaptor.start()
-        #gc.collect()
-        return
-
+        return None
       return newadaptor
-
     except:
       print("ERROR in accept_service")
       pass
-
     return None
-
   #
   #  Wait request from a client 
   #      [Overwrite super's method]
-  #
-  def accept_service_loop(self, lno=1, timeout=0):
+  def accept_service_loop(self, lno=1, timeout=1.0):
     print( "Wait for accept: %s(%s:%d)" % (self.name, self.host, self.port))
     self.socket.listen(lno)
     while self.mainloop:
-      res = self.wait_for_read(timeout) 
-      if res == 1:
-        self.accept_service()
-      elif res == -1:
-        self.terminate()
-      else:
-        pass
+      self.spin_once(timeout)
     
     print( "Terminate all service %s(%s:%d)" % (self.name, self.host, self.port))
     self.close_service()
     self.close()
     print( "..Terminated")
     return 
-
+  #
+  #
   def spin_once(self, timeout=10.0):
     res = self.wait_for_read(timeout) 
     if res == 1:
@@ -356,12 +293,11 @@ class SocketServer(SocketPort):
       self.terminate()
     else:
       pass
-#
+    return
   #
   #
   def getServer(self):
     return self
-
   #
   #
   def registerCommand(self, cmd, func):
@@ -370,25 +306,21 @@ class SocketServer(SocketPort):
     except:
       print("Fail to register", cmd)
     return
-
   #
   #  Thread operations....
-  #
   def run(self):
     self.accept_service_loop(timeout=-1)
     return
-
   #
   # 
-  #
   def remove_service(self, adaptor):
      try:
        if len(self.com_ports) > 0:
          self.com_ports.remove(adaptor)
-         #print( "Terminate Service %s" % adaptor.name )
      except:
        pass
-
+  #
+  #
   def getComPorts(self, klass):
     res=[]
     try:
@@ -397,14 +329,13 @@ class SocketServer(SocketPort):
     except:
       pass
     return res
-
-#
+  
+###########################
 #  Service Adaptor
 #
 class SocketService(SocketPort):
   #
   # Constructor
-  #
   def __init__(self, server, reader, name, sock, addr):
     SocketPort.__init__(self, reader, name, addr[0], addr[1])
     self.module_name=__name__+'.SocketService'
@@ -412,65 +343,27 @@ class SocketService(SocketPort):
     self.server_adaptor = server
     self.name=''
     server.com_ports.append(self)
-
   #
   # Threading...
-  #
   def run(self):
     self.message_receiver(timeout=1.0)
     return
-
-  #
   #
   #
   def getServer(self):
     return self.server_adaptor
-
-  #
   #
   #
   def terminate(self):
     self.mainloop=False
-    #print("terminate service", self)
     return
-
-#
-#  Commands (Comet)
-#
-CloseCodeNum={
-     'Normal':1000,
-     'GoingAway':1001,
-     'ProtocolError':1002,
-     'UnsupportedData':1003,
-     'Reserved':1004,
-     'NoStatus':1005,
-     'Abnormal':1006,
-     'InvalidFrame':1007,
-     'PolicyViolation':1008,
-     'MessageTooBig':1009,
-     'MandatoryExt.':1010,
-     'InetranalError.':1011,
-     'ServiceRestart.':1012,
-     'TryAgain.':1013,
-     'TLS_handshake.':1015,
-}
-
-Opcode={
-     'ContinuationFrame.':0,
-     'TextFrame.':1,
-     'BinaryFrame.':2,
-     'ConnectionCloseFrame.':8,
-     'PingFrame.':9,
-     'PongFrame.':10,
-}
-
-#
+  
+##########################
 #  Foundmental reader class 
 #
 class CommReader:
   #
   # Constructor
-  #
   def __init__(self, owner=None, command=None):
     self.module_name=__name__+'.CommReader'
     self._buffer = ""
@@ -483,37 +376,34 @@ class CommReader:
     else:
       self.command = command
     self.debug = False
-
   #
   #  parse received data, called by SocketPort
-  #
   def parse(self, data):
     if self.debug:
       print( data )
     if data : self.appendBuffer( data )
     return self.checkBuffer()
-
   #
   #  Usually 'owner' is a controller
-  #
   def setOwner(self, owner):
     self.owner = owner
-
+  #
+  #
   def setBuffer(self, buff):
     if self._buffer : del self._buffer
     self._buffer=buff
     self.bufsize = len(buff)
     self.current=0
-
+  #
+  #
   def getServer(self):
     return  self.owner.getServer()
-
+  #
+  #
   def getCommand(self):
     return self.command
-
- #
- #  duplicate...
- #
+  #
+  #  duplicate...
   def duplicate(self):
     #reader = copy.copy(self)
     reader = self.__class__(self.owner, self.command)
@@ -522,14 +412,13 @@ class CommReader:
       reader.command = self.command.duplicate()
       reader.command.reader = reader
     return reader
-
   #
   # Buffer operations
-  #
   def appendBuffer(self, buff):
     self._buffer += buff
     self.bufsize = len(self._buffer)
-
+  #
+  #
   def skipBuffer(self, n=4, flag=1):
     self.current += n
     if flag :
@@ -537,7 +426,8 @@ class CommReader:
       self.current = 0
       self.bufsize = len(self._buffer)
     return 
-
+  #
+  #
   def clearBuffer(self, n=0):
     if n > 0 :
       self._buffer = self._buffer[n:]
@@ -548,10 +438,8 @@ class CommReader:
       self._buffer = ""
       self.current = 0
       self.bufsize = 0
-
   #
   #  Main routine ?
-  #
   def checkBuffer(self):
     try:
       if len(self._buffer) > self.current :
@@ -568,10 +456,8 @@ class CommReader:
       self._buffer=""
       pass
     return False
-     
   #
   # Send response message
-  #
   def send(self, flag=False):
     if self.owner :
       if type(self.response) == str:
@@ -587,29 +473,22 @@ class CommReader:
     return
   #
   #
-  #
   def sendResponse(self, res, flag=True):
     self.response = res
     self.send(flag)
     return
-
   #
   # Append response message
-  #
   def setResponse(self, msg):
     self.response += msg
     return
-
   #
   # Clear response message
-  #
   def clearResponse(self):
     self.response=""
     return
-
   #
   #  extract data from self.buffer 
-  #
   def read(self, nBytes, delFlag=1):
     start = self.current
     end = start + nBytes
@@ -624,8 +503,6 @@ class CommReader:
       self._buffer =  self._buffer[end:]
       self.current =  0
     return data
-
-  #
   #
   #
   def closeSession(self, flag=False):
@@ -633,7 +510,6 @@ class CommReader:
     if flag:
       self.owner.getServer().terminate()
     return
-
   #
   #
   def terminate(self):
@@ -645,19 +521,15 @@ class CommReader:
 class HttpReader(CommReader):
   #
   # Constructor
-  #
   def __init__(self, dirname="html"):
     CommReader.__init__(self, None, HttpCommand(dirname))
     self.dirname = dirname
 
     self.commands={
         '/hello' : self.hello,
-        '/comet_request' : self.cometRequest,
-        '/comet_event' : self.cometTrigger 
                   } 
   #
   #  duplicate...
-  #
   def duplicate(self):
     reader = self.__class__(self.dirname)
     reader.commands = self.commands
@@ -669,34 +541,26 @@ class HttpReader(CommReader):
     return
   #
   #
-  #
   def doProcess(self, header, data):
     self.clearResponse()
     cmd = header["Http-Command"]
     fname = header["Http-FileName"].split('?')
 
     if cmd == "GET":
-      if 'Connection' in header and header['Connection'] == "Upgrade" and 'Upgrade' in header:
+      contents = get_file_contents(fname[0], self.dirname)
+      ctype = get_content_type(fname[0])
+      if contents is None:
         response = response404()
       else:
-        contents = get_file_contents(fname[0], self.dirname)
-        ctype = get_content_type(fname[0])
-        if contents is None:
-          response = response404()
-        else:
-          response = response200(ctype, contents)
-        self.sendResponse(response)
+        response = response200(ctype, contents)
+      self.sendResponse(response)
 
     elif cmd == "POST":
-      #print(fname[0], self.commands)
       if fname[0] in self.commands :
         callback_func_ = self.commands[fname[0]]
-        #print(fname[0], data)
         if isinstance(callback_func_, Command):
-          #print("execute")
           response = callback_func_.execute(data)
         else:
-          #print("call")
           response = callback_func_(data)
         if response:
           if response is True:
@@ -719,60 +583,14 @@ class HttpReader(CommReader):
     return
   #
   #
-  #
   def registerCommand(self, ctype, obj):
     self.commands[ctype] = obj
-
+  #
+  #
   def hello(self, data):
     print("Hello:", data)
     response = response200('application/json', json.dumps({"result": "OK"}))
     return response
-
-  ###############
-  # for COMET
-  #
-  def cometRequest(self, data):
-    Data = parseData(data)
-    if "id" in Data :
-      self.registerHandler(Data)
-      return None
-    else:
-      return response400()
-  #
-  #
-  #
-  def cometTrigger(self, data):
-    Data = parseData(data)
-    res = {}
-    if "id" in Data:
-      self.callHandler(Data)
-      res["result"] = "OK"
-    else:
-      res["result"] = "ERROR"
-
-    res["date"] = get_now_str()
-    return  response200("application/json", json.dumps(res))
-
-  #
-  #
-  #
-  def registerHandler(self, data):
-    server = self.getServer()
-    server.cometManager.registerHandler(self, data['id'], data)
-    return
-
-  #
-  #  for WebSocket
-  #
-  def callHandler(self, data):
-    server = self.getServer()
-    server.cometManager.callHandler(data['id'], data)
-    return
-
-  #
-  #
-  def terminate(self):
-    return
 
 ############################################
 # CommCommand: parse the reveived message
@@ -780,7 +598,6 @@ class HttpReader(CommReader):
 class CommCommand:
   #
   #  Costrutor
-  #
   def __init__(self, buff, rdr=None):
     self.module_name=__name__+'.ComCommand'
     self._buffer=buff
@@ -799,63 +616,64 @@ class CommCommand:
     return command
   #
   #  for buffer
-  #
   def setBuffer(self, buff):
     if self._buffer : del self._buffer
     self._buffer=buff
     self.bufsize = len(buff)
     self.offset=0
-
+  #
+  #
   def clearBuffer(self):
     self.setBuffer("")
-
+  #
+  #
   def appendBuffer(self, buff):
     self._buffer += buff
     self.bufsize = len(self.buff)
-
+  #
+  #
   def skipBuffer(self, n=0):
-      #print( "call skipBuffer %d" % n )
       data = ""
       if self.bufsize > n :
         data = self._buffer[:n]
         self.setBuffer(self._buffer[n:])
-      #print( data )
       return data
-
   #
   #  check message format (cmd encoded_args)
-  #
   def checkMessage(self, buff, offset=0, reader=None):
     print("CommCommand.checkMessage")
     return None
-
   #
   # set/get operations...
-  #
   def setReader(self, rdr):
     self.reader=rdr
-
+  #
+  #
   def getServer(self):
     if self.reader:
       return self.reader.getServer()
     return None
-
+  #
+  #
   def getComPorts(self):
     srvr=self.getServer()
     if srvr:
       return srvr.com_ports
     return None
-
+  #
+  #
   def getMyService(self):
     return self.reader.owner
-
+  #
+  #
   def getMyServiceName(self):
     try:
       return self.reader.owner.name
     except:
       print( "Error in getMyServiceName()")
       return None
-
+  #
+  #
   def getComPortNames(self):
     try:
       comports = self.getComPorts()
@@ -864,7 +682,8 @@ class CommCommand:
     except:
       print( "Error in getComPortNames()")
       return None
-
+  #
+  #
   def getCommandList(self):
     try:
       comports = self.getComPorts()
@@ -881,12 +700,10 @@ class CommCommand:
 class HttpCommand(CommCommand):
   #
   # Constructor
-  #
   def __init__(self, dirname=".", buff=''):
     CommCommand.__init__(self, buff)
     self.dirname=dirname
     self.module_name=__name__+'.HttpCommand'
-
   #
   #
   def duplicate(self):
@@ -895,27 +712,20 @@ class HttpCommand(CommCommand):
     return command
   #
   #
-  #
   def setRootDir(self, dirname):
     self.dirname=dirname
-
-  #
   #
   #
   def checkMessage(self, buff, offset=0, reader=None):
-    #print("HttpCommand.checkMessage")
     pos = self.parseHttpdHeader( buff, offset)
     if pos > 0 :
       if reader is None: reader=self.reader
       reader.doProcess(self.header, self.data)
       return pos
     return 0
-
-  #
   #
   #
   def parseHttpdHeader(self, buff, offset=0):
-    #print("HttpCommand.parseHttpdHeader")
     self.header = {}
     self.data = ""
 
@@ -948,10 +758,8 @@ class HttpCommand(CommCommand):
         self.data=self.data.decode()
       return pos
     return 0
-
   #
   #  parse HTTP Header
-  #
   def parseHeader(self, header):
     res = {}
     for h in header:
@@ -959,66 +767,6 @@ class HttpCommand(CommCommand):
         key, val = h.split(':', 1)
         res[key.strip()] = val.strip()
     return res
-
-######################################33
-#     CometManager
-#
-class CometManager:
-  #
-  # Constructor
-  #
-  def __init__(self, server):
-    self.server = server
-    self.long_pollings = {}
-
-  #
-  #
-  #
-  def resieter(self, reader, id):
-    self.long_pollings[id] = reader
-
-  #
-  #
-  #
-  def registerHandler(self, reader, id, data):
-    self.long_pollings[id] = reader
-    return
-
-  #
-  #
-  #
-  def callHandler(self, id, data):
-    res = {}
-    res['date'] = get_now_str()
-    res['message'] = "Push message"
-
-    if id == "all":
-      self.response_all(res, "application/json")
-    else:
-      self.response(id, res, "application/json")
-    return
-
-  #
-  #
-  #
-  def response(self, id, json_data, ctype="text/plain"):
-    reader = self.long_pollings[id]
-    if reader :
-      json_data['id'] = id
-      json_data['result'] = ""
-
-      contents = json.dumps(json_data)
-      responsemsg = response200(ctype, contents)
-      reader.sendResponse(responsemsg)
-      self.long_pollings[id] = None
-
-  #
-  #
-  #
-  def response_all(self, json_data, ctype="text/plain"):
-    keys = self.long_pollings.keys()
-    for k in  keys :
-      self.response(k, json_data, ctype)
 
 ##################################################
 # Functoins
@@ -1030,10 +778,9 @@ def get_file_contents(fname, dirname="."):
     contents = f.read()
     f.close()
   except:
-    #print( "ERROR!! get_file_contents [%s, %s] " % (dirname, fname))
     pass
   return contents.decode()
-
+#
 #
 def get_content_type(fname):
   imgext=["jpeg", "gif", "png", "bmp"]
@@ -1057,7 +804,7 @@ def get_content_type(fname):
   else:
     pass
   return ctype
-
+#
 #
 def parseData(data):
   res = {}
@@ -1069,7 +816,7 @@ def parseData(data):
     except:
       pass
   return res
-
+#
 #
 def flatten(lst):
   res=[]
@@ -1079,7 +826,7 @@ def flatten(lst):
     else:
       res.append(x)
   return res
-
+#
 #
 def findall(func, lst):
   res = []
@@ -1099,7 +846,7 @@ def response101(header="text/plain", contents=""):
   res += "\r\n"
   res += contents
   return res
-
+#
 #
 def response200(ctype="text/plain", contents=""):
   date = get_now_str()
@@ -1110,7 +857,7 @@ def response200(ctype="text/plain", contents=""):
   res += "\r\n"
   res += contents
   return res
-
+#
 #
 def response404():
   date = get_now_str()
@@ -1118,7 +865,7 @@ def response404():
   res += "Date: "+date+"\r\n"
   res += "\r\n"
   return res
-
+#
 #
 def response400():
   date = get_now_str()
@@ -1126,7 +873,7 @@ def response400():
   res += "Date: "+date+"\r\n"
   res += "\r\n"
   return res
-
+#
 #
 def response500():
   date = get_now_str()
@@ -1134,13 +881,15 @@ def response500():
   res += "Date: "+date+"\r\n"
   res += "\r\n"
   return res
-
 #
-#
+#  Command class
 class Command:
+  #
+  #
   def __init__(self):
     self.name="Command"
-
+  #
+  #
   def execute(self, data):
     print(data)
     pass

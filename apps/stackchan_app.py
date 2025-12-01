@@ -1,43 +1,53 @@
 import os, sys, io
+import time
 import M5
 from M5 import *
+from hardware import sdcard
+
+if not "sd" in os.listdir("/"):
+  sdcard.SDCard(slot=3, width=1, miso=35, mosi=37, sck=36, cs=4)
+
+sys.path.append('/sd/scripts')
+
 from StackChan import StackChan
 from Button import Button
-import time
-
 
 stackchan_0 = None
 button_0 = None
 button_1 = None
+button_2 = None
+
 
 def setup():
-  global stackchan_0, button_0, button_1
-
+  global stackchan_0, button_0, button_1, button_2
   M5.begin()
-  Widgets.setRotation(1)
+  Widgets.setRotation(3)
   Widgets.fillScreen(0x000000)
-
   stackchan_0 = StackChan()
   stackchan_0.init_web(80)
   button_0 = Button('Btn1', 0, 220, 100, 20)
   button_0.set_callback('stackchan_0.start_web_server')
   button_1 = Button('Btn2', 220, 220, 100, 20)
   button_1.set_callback('stackchan_0.show_battery_level')
-
+  button_2 = Button('Btn3', 130, 100, 60, 40)
+  button_2.set_callback('stackchan_0.start_dialog')
 
 def loop():
-  global stackchan_0, button_0, button_1
-
+  global stackchan_0, button_0, button_1, button_2
   M5.update()
   if 0 < (M5.Touch.getCount()):
-    button_0.check_tap()
-    button_1.check_tap()
+    if button_0.check_tap():
+      button_0.check()
+    elif button_1.check_tap():
+      button_1.check()
+    elif button_2.check_tap():
+      button_2.check()
+    else:
+      stackchan_0.clear_msg()
+    #time.sleep_ms(200)
   else:
-    button_0.check()
-    button_1.check()
     stackchan_0.update()
-    time.sleep_ms(150)
-
+    time.sleep_ms(80)
 
 if __name__ == '__main__':
   try:
