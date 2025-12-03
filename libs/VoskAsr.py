@@ -159,6 +159,6 @@ class VoskAsr(Command):
           return res
       return False
   
-  def show_message(self, msg=''):
+  def show_message(self, msg='', color=0xffff00):
     if self.parent:
-        self.parent.face.print_info(msg)
+        self.parent.print_info(msg, color)

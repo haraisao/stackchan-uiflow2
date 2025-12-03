@@ -40,7 +40,6 @@ class Face:
         self.mouse_flag=0
         self.talk_intval=0.1
         self.count=0
-        self.talk_timer=machine.Timer(0)
         self.blink_timer=machine.Timer(1)
         self.motions_all=['', 'look_r', 'look_l', 'look_u', 'look_d', 'wink_r', 'wink_l', 'anger', 'surprise', 'unhappy', 'smile']
         self.motions=['', 'look_d','smile']

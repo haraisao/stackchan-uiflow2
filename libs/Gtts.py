@@ -40,10 +40,11 @@ class Gtts(Command):
     #
     def __init__(self):
         self._endpoint = "https://texttospeech.googleapis.com/v1/text:synthesize"
-        self.conf = util.load_conf("/sd/apikey.txt")
-        self._apikey = self.conf['OPENHRI_KEY']
+        self.key_config = util.load_conf("/sd/apikey.txt")
+        self._apikey = self.key_config['OPENHRI_KEY']
+
         self._lang = "ja-JP"
-        self._speekingRate = "1.2"
+        self._speakingRate = "1.2"
         self._ssmlGender = "FEMALE"
         self._voiceName = "ja-JP-Wavenet-B"
         self._pitch = "5.0"
@@ -78,7 +79,7 @@ class Gtts(Command):
                  'audioConfig': {
                           'audioEncoding':'LINEAR16'  # LINEAR16, MP3, OGG_OPUS
                           #'audioEncoding':'MP3'  # LINEAR16, MP3, OGG_OPUS
-                        , 'speakingRate' : self._speekingRate   # [0.25: 4.0]
+                        , 'speakingRate' : self._speakingRate   # [0.25: 4.0]
                         , 'pitch' : self._pitch         # [ -20.0: 20.0]
                         , 'volumeGainDb' : self._volumeGain
                         , 'sampleRateHertz' : self._sampleRate # default is 22050
@@ -90,8 +91,11 @@ class Gtts(Command):
                 data['audioConfig']['effectsProfileId'] = 'telephony-class-application'
             else:
                 data['audioConfig']['effectsProfileId'] = self._effectsProfileId + "-class-device"
-        response = requests2.post(url, data=json.dumps(data).encode('utf-8'), headers=headers)
-        return response
+        try:
+            response = requests2.post(url, data=json.dumps(data).encode('utf-8'), headers=headers)
+            return response
+        except:
+            return None
     #
     #
     def set_volume(self, x):
@@ -144,7 +148,9 @@ class Gtts(Command):
             req=request.replace("\n", "。").split("。")
             for msg in req:
                 if msg:
-                    self.speak(msg)
+                    res = self.speak(msg)
+                    if res is False:
+                        self.show_message("音声合成失敗…", 0xff8888)
             self.request=None
             self.show_message()
         return
@@ -161,7 +167,7 @@ class Gtts(Command):
         machine.reset()
         return
     
-    def show_message(self, msg=''):
+    def show_message(self, msg='', color=0xffff00):
       if self.parent:
-          self.parent.face.print_info(msg)
+          self.parent.print_info(msg, color)
 

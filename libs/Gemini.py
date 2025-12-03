@@ -12,14 +12,13 @@ class Gemini(object):
   #
   #  Constructor
   #
-  def __init__(self,language='ja-JP'):
+  def __init__(self):
     self._endpoint = "https://generativelanguage.googleapis.com/v1beta/models"
     self.conf = util.load_conf("/sd/apikey.txt")
     self._apikey = self.conf['GEMINI_KEY']
 
     self.model = "/gemini-2.5-flash:generateContent"
-    #self.model = "/gemini-2.0-flash:generateContent"
-    self._lang = language
+    self._lang = 'ja-JP'
     self.chat_history=[]
     self.prompt = ""
   #
@@ -45,7 +44,6 @@ class Gemini(object):
   #
   def get_system_chat_content(self, result):
     try:
-      #print(result)
       res=result['candidates'][0]['content']['parts'][0]['text']
       self.gen_chat_content(res, 'model')
       return res
@@ -55,7 +53,6 @@ class Gemini(object):
   #
   #
   def request_gemini(self, text):
-    #url = self._endpoint+self.model+"?key="+self._apikey
     url = self._endpoint+self.model
     headers = { 'x-goog-api-key': self._apikey,
                 'Content-Type' : 'application/json; charset=utf-8' }
@@ -64,7 +61,6 @@ class Gemini(object):
 
     data = {
       "contents": self.chat_history,
-      #"generationConfig": {  "responseMimeType": "application/json" }
     }
     if self.prompt:
       data["system_instruction"] = {
@@ -73,7 +69,6 @@ class Gemini(object):
          }],
          "role" : "model"
       }
-
     #
     #
     data["tools"] = [

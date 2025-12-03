@@ -6,12 +6,12 @@ import json
 import time
 import binascii
 import camera
+import dl
 import gc
 
 import Face
 import util
 import WebServer
-
 
 #
 # Stack-chan Main
@@ -27,9 +27,10 @@ class StackChan:
       self.config={}
     # WLAN
     self.wlan = util.connect_wlan()
-
-    if 'camera_setup' in self.config and self.config['camera_setup']:
+    self.camera_setupted = False
+    if self.config.get('camera_setup'):
       self.setup_camera()
+      self.tracking_flag = False
 
     #
     # face, motors, TTS client, ASR client
@@ -43,10 +44,13 @@ class StackChan:
     self.set_asr()
     self.dialog=None
     self.setup_dialog()
+
+    self.event_time=time.time()
+    self.debug_time=time.time()
   #
   # Create web server
   def init_web(self, n=80, start=False):
-    if  'web_server' in self.config:
+    if self.config.get('web_server'):
       try:
         port = int(self.config['web_server'])
       except:
@@ -61,7 +65,7 @@ class StackChan:
     self.web_server.registerCommand("/face", self.face.set_face_id)
     self.web_server.registerCommand("/get_camera_image", self.capture_image)
     self.web_server.registerCommand("/set_message", self.set_message)
-
+    self.web_server.registerCommand("/command", self.request_command)
     if self.tts:
         self.web_server.registerCommand("/tts", self.tts.set_request)
     if self.asr:
@@ -78,18 +82,64 @@ class StackChan:
 
     if self.isconnected_wlan():
         self.face.print_info("IP:" + self.wlan.ifconfig()[0])
-        #self.web_server.start()
     else:
       if self.connect_wlan(10):
         self.face.print_info("IP:" + self.wlan.ifconfig()[0])
-        #self.web_server.start()
     return
+  
+  def request_command(self, data):
+    param=json.loads(data)
+    if param['cmd'] == 'detect_face':
+      self.tracking_face()
+      return True
+    elif param['cmd'] == 'face_tracking':
+      self.tracking_flag=param['data']
+      return True
+    return False
   #
   # camera
   def setup_camera(self):
     camera.init(pixformat=camera.RGB565, framesize=camera.QVGA)
     if 'vflip' in self.config:
       camera.set_vflip(self.config['vflip'])
+
+    self.face_detector = dl.ObjectDetector(dl.model.HUMAN_FACE_DETECT)
+    self.camera_setupted = True 
+    return
+  #
+  #
+  def detect_face(self, data=""):
+    if not self.camera_setupted : return None 
+    img = camera.snapshot()
+    detection_result = self.face_detector.infer(img)
+    face_pos=[]
+    if detection_result:
+      for res in detection_result:
+        #kp = res.keypoint()
+        face_pos.append([res.x(), res.y(), res.w(), res.h()])
+
+    return face_pos
+  #
+  #
+  def tracking_face(self):
+    if not self.tracking_flag: return 
+    face_pos_ = self.detect_face()
+    if face_pos_ :
+      pos_ =face_pos_[0]
+      print("Face:", pos_[0]+pos_[2]//2, pos_[1]+pos_[3]//2, pos_[2], pos_[3])
+      if pos_[3] > 60:
+        dx = pos_[0]+pos_[2]//2 - 160
+        dy = pos_[1]+pos_[3]//2 - 120
+        cpos = self.motor.current_pos
+
+        dx_deg = cpos[0] - dx//10
+        dy_deg = cpos[1] + dy//10
+
+        #print(cpos, dx, dy, dx_deg, dy_deg)
+        self.motor.motor(True)
+        self.motor.move(dx_deg, dy_deg)
+      if pos_[3] > 120:
+        self.start_dialog()
     return
   #
   #
@@ -247,10 +297,16 @@ class StackChan:
   #
   # Show ASR result
   def show_asr_result(self, result):
-    if result and result['error'] == '':
-      self.face.info=result['result']
-      self.face.print_info(result['result'])
+    if result and result.get('error') == '':
+      self.print_info(result.get('result'))
     return True
+  #
+  #
+  def print_info(self, msg, color=0xffff00):
+    self.face.print_info(msg, color)
+
+  def print_message(self, msg, color=0xffffff):
+    self.face.print_message(msg, color)
   #
   # Capture an image
   def capture_image(self, arg):
@@ -297,7 +353,19 @@ class StackChan:
     self.asr.set_request(data)
     return
   
-  
+  def toggle_rand_motion(self):
+    if self.motor:
+      if time.time() - self.event_time < 2:
+        return
+      self.motor.toggle_rand_motion()
+      if self.motor.rand_motion:
+        self.face.print_message("Motion On")
+        self.tracking_flag=True
+      else:
+        self.tracking_flag=False
+        self.face.print_message("Off",0xff8888)
+      self.event_time = time.time()
+
   def set_face_id(self, id):
     self.face.set_face_id(id)
     return
@@ -305,14 +373,19 @@ class StackChan:
   #
   # Spin once
   def update(self):
+    debug = time.time() - self.debug_time
+    if debug % 10 == 0: print("Debug", debug)
     if self.web_server:
       self.web_server.update()
     self.face.update()
+    self.tracking_face()
+    #
     if self.motor:
       self.motor.update()
+    #
     if self.asr:
       res=self.asr.check_request()
-      if res and self.dialog:
+      if res and self.dialog and res['result'] != '':
           self.face.print_info("考え中…")
           result=self.dialog.request(res['result'])
           try:
@@ -324,7 +397,10 @@ class StackChan:
             print(result)
       else:
         if res is None:
-          self.tts.set_request("対話終了")
+          pass
+          #self.tts.set_request("対話終了")
+        elif res and res['result'] == '':
+          self.tts.set_request("何？")
         self.show_asr_result(res)
     if self.tts:
       self.tts.check_request()

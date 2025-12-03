@@ -1,0 +1,19 @@
+{
+    "motor": "Dynamixel",
+    "SG90": {"pan": "2", "titt": "9"},
+    "tts" : "google",
+    "google": {
+        "lang": "ja_JP", "speakingRate": "1.2", "ssmlGender": "FEMALE",
+        "voiceName": "ja-JP-Wavent-B", "pitch": "5.0", "volumeGain": "0",
+        "sampleRate": "8000", "effectsProfileId": ""},
+    "voicevox": {"host": "192.168.0.100"},
+    "asr": "google",
+    "vosk": {"host": "192.168.0.100"},
+    "web_server": "80",
+    "camera_setup": 1,
+    "vflip": 1,
+    "dialog": "gemini",
+    "gemini": {"model": "/gemini-2.5-flash:generateContent", "lang": "ja_JP"},
+    "chatgpt": {"model": "gpt-5"},
+    "prompt": "あたなは、小さなスーパーロボット「スタックチャン」です。現在、東京にいます。対話の応答は、東京にいることを前提に、30字以内で答えてください。"
+}

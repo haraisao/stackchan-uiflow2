@@ -7,9 +7,6 @@ import requests2
 import json
 import util
 
-DEFAULT_MODEL = 'gpt-4.1-mini'
-DEFAULT_MODEL = 'gpt-4o-2024-05-13'
-
 #
 #
 class ChatGPT(object):
@@ -22,10 +19,9 @@ class ChatGPT(object):
     self._apikey = self.conf['OPENAI_KEY']
 
     #self._endpoint = "http://localhost:1234/v1/responses"
-    #self._http = urllib3.PoolManager()
     #self._apikey = 'lm-studio'
 
-    self.model = DEFAULT_MODEL
+    self.model = 'gpt-5'
     self.chat_history=[]
     self.prompt = ""
   #
@@ -62,13 +58,10 @@ class ChatGPT(object):
                 res += part['text']
             except:
               pass
-      print("Response:",res)
       self.gen_chat_content(res, 'assistant')
       return res
     except:
-      import traceback
-      traceback.print_exc()
-      print(result)
+      print("ERRPR", result)
       return "Fail"
   #
   #
@@ -83,7 +76,8 @@ class ChatGPT(object):
       'model': self.model,
       'input': self.chat_history,
       #'tools': [{"type": "mcp", "server_label": "web-search" }]
-      'tools': [{"type": "web_search_preview"}],
+      #'tools': [{"type": "web_search_preview"}],
+      'tools': [{"type": "web_search"}],
     }
     if self.prompt:
       data["input"].insert(0,
@@ -108,7 +102,6 @@ class ChatGPT(object):
   #
   #
   def request(self, txt):
-    print("Talk:", txt)
     result = self.talk(txt)
     if result:
       return self.get_system_chat_content(result)

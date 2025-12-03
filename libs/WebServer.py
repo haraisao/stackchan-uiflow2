@@ -6,6 +6,7 @@ from M5 import *
 import machine
 import time
 import comm
+import json
 
 #####################
 #
@@ -18,6 +19,8 @@ class WebServer:
     self.reader = comm.HttpReader(top)
     self.server = comm.SocketServer(self.reader, "Web", "", port)
     self.started=False
+    self.registerCommand("/get_file", self.get_content)
+    self.registerCommand("/save_file", self.save_content)
   #
   #
   def renew(self):
@@ -37,6 +40,23 @@ class WebServer:
 
     self.server.reader.registerCommand(name, func)
     return
+  
+  def get_content(self, data):
+    param = json.loads(data)
+    print(param)
+    response = {}
+    with open(param['file_name'], 'r') as file:
+      response['data'] = file.read()
+    print(response)
+    return response
+  
+  def save_content(self, data):
+    param = json.loads(data)
+    res = False
+    with open(param['file_name'], 'w') as file:
+      file.write(param['data'])
+      res = True
+    return res
   #
   #
   def is_started(self):

@@ -19,8 +19,8 @@ class Gasr(Command):
   #  Constructor
   def __init__(self, node=None, language='ja-JP'):
     self._endpoint = 'https://speech.googleapis.com/v1/speech:recognize'
-    self.conf = util.load_conf("/sd/apikey.txt")
-    self._apikey = self.conf['OPENHRI_KEY']
+    self.key_config = util.load_conf("/sd/apikey.txt")
+    self._apikey = self.key_config['OPENHRI_KEY']
 
     self._lang=language
 
@@ -60,9 +60,11 @@ class Gasr(Command):
                         'content' : audio_data.decode('utf-8')
                           }
             }
-
-    response = requests2.post(url, json=request_data, headers=headers)
-    return response.text
+    try:
+      response = requests2.post(url, json=request_data, headers=headers)
+      return response.text
+    except:
+      return ""
   #
   #
   def record_audio(self, tm=5, thr=41, max_count=1 ):
@@ -102,14 +104,14 @@ class Gasr(Command):
     if len(data) > 0:
       self.show_message("音声認識中…")
       res_=self.request_speech_recog(data)
-      response=json.loads(res_)
       try:
+        response=json.loads(res_)
         res=response['results'][0]['alternatives'][0]['transcript']
         print("RESPONSE:", res)
         return { 'result': res , 'error': ''}
       except:
         print("==== Fail")
-        return None
+        #return None
       return  { 'result': '', 'error': 'Fail to recoginze' }
     else:
       print("==== No sound")
@@ -127,25 +129,25 @@ class Gasr(Command):
   #
   #
   def set_request(self, data):
-      self.request = data
-      return True
+    self.request = data
+    return True
   #
   #
   def check_request(self):
-      if self.request:
-          self.show_message("音声入力…", 0x8888ff)
-          param=json.loads(self.request)
-          #print(param)
-          res=self.do_process(param['max_seconds'], param['threshold'], param['max_count'])
-          if res is None:
-            self.request=None
-          self.show_message("")
-          return res
-      return False
+    if self.request:
+      self.show_message("音声入力…", 0x8888ff)
+      param=json.loads(self.request)
+      #print(param)
+      res=self.do_process(param['max_seconds'], param['threshold'], param['max_count'])
+      if res is None:
+        self.request=None
+      self.show_message("")
+      return res
+    return False
   
   def show_message(self, msg='', color=0xffff00):
-      if self.parent:
-          self.parent.face.print_info(msg, color)
+    if self.parent:
+      self.parent.print_info(msg, color)
 
 ####################
 #
