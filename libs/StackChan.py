@@ -126,19 +126,20 @@ class StackChan:
     face_pos_ = self.detect_face()
     if face_pos_ :
       pos_ =face_pos_[0]
-      print("Face:", pos_[0]+pos_[2]//2, pos_[1]+pos_[3]//2, pos_[2], pos_[3])
+      center_x = pos_[0]+pos_[2]//2
+      center_y = pos_[1]+pos_[3]//2
+      print("Face:", center_x, center_y, pos_[2], pos_[3])
       if pos_[3] > 60:
-        dx = pos_[0]+pos_[2]//2 - 160
-        dy = pos_[1]+pos_[3]//2 - 120
+        dx = center_x - 160
+        dy = center_y - 120
         cpos = self.motor.current_pos
-
-        dx_deg = cpos[0] - dx//10
-        dy_deg = cpos[1] + dy//10
-
-        #print(cpos, dx, dy, dx_deg, dy_deg)
-        self.motor.motor(True)
-        self.motor.move(dx_deg, dy_deg)
-      if pos_[3] > 120:
+        if abs(dx) > 10 or  abs(dy) > 10: 
+          dx_deg = cpos[0] + dx / 20.0
+          dy_deg = cpos[1] + dy / 20.0
+          #print(cpos, dx, dy, dx_deg, dy_deg)
+          self.motor.motor(True)
+          self.motor.move(dx_deg, dy_deg)
+      if pos_[3] > 160:
         self.start_dialog()
     return
   #
@@ -292,7 +293,7 @@ class StackChan:
   #
   # Set goal posirion
   def move(self, p_deg, t_deg):
-    self.motor.move(p_deg, t_deg, True)
+    self.motor.move(p_deg, t_deg, force=True)
     return
   #
   # Show ASR result

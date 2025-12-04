@@ -21,7 +21,7 @@ button_3 = None
 def setup():
   global stackchan_0, button_0, button_1, button_2, button_3
   M5.begin()
-  Widgets.setRotation(3)
+  Widgets.setRotation(1)
   Widgets.fillScreen(0x000000)
   stackchan_0 = StackChan()
   stackchan_0.init_web(80)
