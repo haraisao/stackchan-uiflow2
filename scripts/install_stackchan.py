@@ -12,8 +12,8 @@ def save_file(data, fname, to_dir):
     ft.close()
 
 def fetch_file(fname, to_dir):
-    #url_base="https://raw.githubusercontent.com/haraisao/stackchan-uiflow2/refs/heads/main/"
-    url_base="https://raw.githubusercontent.com/rt-net/stack-chan/refs/heads/uiflow2/uiflow2"
+    url_base="https://raw.githubusercontent.com/haraisao/stackchan-uiflow2/refs/heads/main/"
+    #url_base="https://raw.githubusercontent.com/rt-net/stack-chan/refs/heads/uiflow2/uiflow2"
     url_ = url_base+fname
     res = requests2.get(url_)
     if res.status_code == 200:
