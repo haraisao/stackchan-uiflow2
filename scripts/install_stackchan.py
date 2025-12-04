@@ -34,3 +34,13 @@ def setup():
     app_list=["stackchan_app.py"]
     install_files(append_prefix('libs/', lib_list), '/flash/libs')
     install_files(append_prefix('apps/', app_list), '/flash/apps')
+
+if __name__=='__main__':
+  try:
+    setup()
+  except (Exception, KeyboardInterrupt) as e:
+    try:
+      from utility import print_error_msg
+      print_error_msg(e)
+    except ImportError:
+      print("please update to latest firmware")

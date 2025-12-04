@@ -177,3 +177,8 @@ def copy_file(frm, to):
     ft.write(ff.read())
     ff.close()
     ft.close()
+
+def remove_all_file(dir):
+    os.chdir(dir)
+    for fname in os.listdir():
+        os.remove(fname)

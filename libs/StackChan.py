@@ -382,7 +382,8 @@ class StackChan:
     #
     if self.motor:
       if self.motor.update():
-        print("Debug", debug)
+        pass
+        #print("Debug", debug)
     #
     if self.asr:
       res=self.asr.check_request()
