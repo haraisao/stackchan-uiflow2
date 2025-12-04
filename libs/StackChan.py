@@ -302,11 +302,11 @@ class StackChan:
     return True
   #
   #
-  def print_info(self, msg, color=0xffff00):
-    self.face.print_info(msg, color)
+  def print_info(self,msg='',color=0xffff00):
+    self.face.print_info(msg,color)
 
-  def print_message(self, msg, color=0xffffff):
-    self.face.print_message(msg, color)
+  def print_message(self,msg='',color=0xffffff):
+    self.face.print_message(msg,color)
   #
   # Capture an image
   def capture_image(self, arg):
@@ -374,14 +374,15 @@ class StackChan:
   # Spin once
   def update(self):
     debug = time.time() - self.debug_time
-    if debug % 10 == 0: print("Debug", debug)
+    #if debug % 10 == 0: print("Debug", debug)
     if self.web_server:
       self.web_server.update()
     self.face.update()
     self.tracking_face()
     #
     if self.motor:
-      self.motor.update()
+      if self.motor.update():
+        print("Debug", debug)
     #
     if self.asr:
       res=self.asr.check_request()

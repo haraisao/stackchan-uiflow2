@@ -118,6 +118,7 @@ class SG90Driver:
           if self.rand_motion and spend_time > random.random() * 30 + 10:
               self.motor(True)
               self.random_motion()
+              return True
           elif self.motor_state and spend_time > 120:
               print("sleep...")
               self.motor(False)
