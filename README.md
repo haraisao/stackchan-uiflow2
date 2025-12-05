@@ -50,6 +50,7 @@ conf/stackchan.jsonには、RT版スタックチャンのための設定を記�
 - **motor**: "Dynamixel" または "SG90"
 - **tts**: "google" または "voicevox"
 - **asr**: "google"　または "vosk"
+- **dialog**: "gemini"　または "openai"
 
 音声合成と音声認識にGoogleCloudを使わない場合には、それぞれのサーバが動作しているIPアドレスの設定が必要です。
 
@@ -73,6 +74,7 @@ Home, Work, Mobileの3つの設定を行ってください。
 ```
 OPENHRI_KEY=
 GEMINI_KEY=
+OPENAI_KEY=
 ```
 
 ##### 設定ファイルのアップロード

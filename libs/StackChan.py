@@ -375,7 +375,6 @@ class StackChan:
   # Spin once
   def update(self):
     debug = time.time() - self.debug_time
-    #if debug % 10 == 0: print("Debug", debug)
     if self.web_server:
       self.web_server.update()
     self.face.update()
@@ -383,8 +382,9 @@ class StackChan:
     #
     if self.motor:
       if self.motor.update():
-        pass
         #print("Debug", debug)
+        pass
+
     #
     if self.asr:
       res=self.asr.check_request()

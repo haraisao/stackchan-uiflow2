@@ -182,3 +182,8 @@ def remove_all_file(dir):
     os.chdir(dir)
     for fname in os.listdir():
         os.remove(fname)
+
+def reset_m5():
+    import esp32
+    nvs = esp32.NVS("uiflow")
+    nvs.set_u8("boot_option", 1)
