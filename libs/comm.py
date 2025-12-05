@@ -27,6 +27,9 @@ class Thread:
         self.args = args
         self.kwargs = {} if kwargs is None else kwargs
 
+    def __delete__(self):
+        _thread.exit()
+  
     def start(self):
         self.run()
         #_thread.start_new_thread(self.run, ())
@@ -38,11 +41,11 @@ class Thread:
 # Raw Socket Adaptor
 #
 #   threading.Tread <--- SocketPort
-class SocketPort(Thread):
+class SocketPort:
   #
   # Contsructor
   def __init__(self, reader, name, host, port):
-    super().__init__(self)
+    #super().__init__(self)
     self.module_name=__name__+'.SocketPort'
     self.reader = reader
     if self.reader:
@@ -206,7 +209,7 @@ class SocketPort(Thread):
   #
   #  Stop background job
   def terminate(self):
-    print("Call terminate", self)
+    #print("Call terminate", self)
     try:
       self.reader.terminate()
     except:
@@ -363,7 +366,7 @@ class SocketService(SocketPort):
   def terminate(self):
     self.mainloop=False
     super().terminate()
-    #_thread.exit()
+    gc.collect()
     return
   
 ##########################
