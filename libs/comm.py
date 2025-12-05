@@ -28,7 +28,8 @@ class Thread:
         self.kwargs = {} if kwargs is None else kwargs
 
     def start(self):
-        _thread.start_new_thread(self.run, ())
+        self.run()
+        #_thread.start_new_thread(self.run, ())
 
     def run(self):
         self.target(*self.args, **self.kwargs)
@@ -205,6 +206,7 @@ class SocketPort(Thread):
   #
   #  Stop background job
   def terminate(self):
+    print("Call terminate", self)
     try:
       self.reader.terminate()
     except:
@@ -265,9 +267,13 @@ class SocketServer(SocketPort):
         newadaptor.start()
         return None
       return newadaptor
-    except:
+    except (Exception) as e:
       print("ERROR in accept_service")
-      pass
+      try:
+        from utility import print_error_msg
+        print_error_msg(e)
+      except:
+        pass
     return None
   #
   #  Wait request from a client 
@@ -356,6 +362,8 @@ class SocketService(SocketPort):
   #
   def terminate(self):
     self.mainloop=False
+    super().terminate()
+    #_thread.exit()
     return
   
 ##########################
