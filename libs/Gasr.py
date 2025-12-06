@@ -70,7 +70,7 @@ class Gasr(Command):
   def record_audio(self, tm=5, thr=41, max_count=1 ):
       if not Mic.begin():
         print("Mic not work")
-        return
+        return []
       ds=0.5
       tm0=time.time()+tm
       res=b""
