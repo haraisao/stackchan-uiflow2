@@ -27,25 +27,30 @@ class Thread:
         self.args = args
         self.kwargs = {} if kwargs is None else kwargs
 
-    def __delete__(self):
-        _thread.exit()
+    #def __delete__(self):
+    #    _thread.exit()
   
     def start(self):
-        self.run()
-        #_thread.start_new_thread(self.run, ())
+        _thread.start_new_thread(self.run, ())
 
     def run(self):
         self.target(*self.args, **self.kwargs)
 
+
+#def start_thread(obj):
+#  _thread.start_new_thread(obj.run, ())
+#
+#def stop_thread():
+#  _thread.exit()
 #
 # Raw Socket Adaptor
 #
 #   threading.Tread <--- SocketPort
-class SocketPort:
+class SocketPort(Thread):
   #
   # Contsructor
   def __init__(self, reader, name, host, port):
-    #super().__init__(self)
+    super().__init__(self)
     self.module_name=__name__+'.SocketPort'
     self.reader = reader
     if self.reader:
@@ -174,17 +179,21 @@ class SocketPort:
   #  Background job ( message receiver )
   def message_receiver(self, timeout=1.0):
     while self.mainloop:
+      print("-- message_recv")
       data = self.receive_data(timeout=timeout)
 
       if data  == -1:
         self.terminate()
+        return
       elif data or data is None:
         if data is None or self.reader.parse(data):
           self.mainloop=False
       else :
         print("Umm...: %s" % self.name)
         print(data)
-
+    print("terminate")
+    gc.collect()
+    gc.mem_free()
     self.terminate()
     return
   #
@@ -294,7 +303,7 @@ class SocketServer(SocketPort):
     return 
   #
   #
-  def spin_once(self, timeout=10.0):
+  def spin_once(self, timeout=1.0):
     res = self.wait_for_read(timeout) 
     if res == 1:
       self.accept_service()
@@ -318,6 +327,7 @@ class SocketServer(SocketPort):
   #
   #  Thread operations....
   def run(self):
+    #self.mainloop=True
     self.accept_service_loop(timeout=-1)
     return
   #
@@ -591,7 +601,7 @@ class HttpReader(CommReader):
       response = response400()
       self.sendResponse(response)
 
-    return
+    return True
   #
   #
   def registerCommand(self, ctype, obj):

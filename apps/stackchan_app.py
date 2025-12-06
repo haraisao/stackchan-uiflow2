@@ -50,7 +50,7 @@ def loop():
       stackchan_0.clear_msg()
   else:
     stackchan_0.update()
-    time.sleep_ms(100)
+    #time.sleep_ms(100)
 
 if __name__ == '__main__':
   try:

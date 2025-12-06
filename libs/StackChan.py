@@ -47,6 +47,7 @@ class StackChan:
 
     self.event_time=time.time()
     self.debug_time=time.time()
+    self.debug = 0
   #
   # Create web server
   def init_web(self, n=80, start=False):
@@ -80,11 +81,15 @@ class StackChan:
     if self.web_server is None:
       self.init_web(start=False)
 
+    state_=self.web_server.toggle_state()
+    
     if self.isconnected_wlan():
-        self.face.print_info("IP:" + self.wlan.ifconfig()[0])
+        self.face.print_info("IP:" + self.wlan.ifconfig()[0]+ ", "+state_)
     else:
       if self.connect_wlan(10):
-        self.face.print_info("IP:" + self.wlan.ifconfig()[0])
+        self.face.print_info("IP:" + self.wlan.ifconfig()[0] + ", "+state_)
+
+
     return
   
   def request_command(self, data):
@@ -122,7 +127,9 @@ class StackChan:
   #
   #
   def tracking_face(self):
-    if not self.tracking_flag: return 
+    if not self.tracking_flag:
+      time.sleep_ms(100)
+      return 
     face_pos_ = self.detect_face()
     if face_pos_ :
       pos_ =face_pos_[0]
@@ -313,6 +320,7 @@ class StackChan:
   def capture_image(self, arg):
     try:
       frame = camera.snapshot()
+      print("capture image")
       raw_bytes = frame.bytearray()
       encoded = binascii.b2a_base64(raw_bytes, newline=False).decode()
       response = {
@@ -327,6 +335,8 @@ class StackChan:
           'height': 0,
           'data': ''
       }
+    gc.collect()
+    gc.mem_free()
     return response
   #
   # Set message
@@ -356,15 +366,15 @@ class StackChan:
   
   def toggle_rand_motion(self):
     if self.motor:
-      if time.time() - self.event_time < 2:
-        return
+      #if time.time() - self.event_time < 2:
+      #  return
       self.motor.toggle_rand_motion()
       if self.motor.rand_motion:
         self.face.print_message("Motion On")
         self.tracking_flag=True
       else:
         self.tracking_flag=False
-        self.face.print_message("Off",0xff8888)
+        self.face.print_message("Motion Off",0xff8888)
       self.event_time = time.time()
 
   def set_face_id(self, id):
@@ -375,6 +385,9 @@ class StackChan:
   # Spin once
   def update(self):
     debug = time.time() - self.debug_time
+    if self.debug != debug:
+      #print(debug)
+      self.debug = debug
     if self.web_server:
       self.web_server.update()
     self.face.update()

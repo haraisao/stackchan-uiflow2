@@ -43,11 +43,10 @@ class WebServer:
   
   def get_content(self, data):
     param = json.loads(data)
-    print(param)
+    #print(param)
     response = {}
     with open(param['file_name'], 'r') as file:
       response['data'] = file.read()
-    print(response)
     return response
   
   def save_content(self, data):
@@ -79,5 +78,15 @@ class WebServer:
   #
   #
   def update(self, timeout=0.1):
-    self.server.spin_once(timeout)
-    return#
+    if self.started:
+      self.server.spin_once(timeout)
+    return
+  
+  def toggle_state(self):
+    if self.started:
+      self.started = False
+      return "Web Off"
+    else:
+      self.started = True
+      return "Web On"
+    
