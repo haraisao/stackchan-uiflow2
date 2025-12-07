@@ -9,6 +9,7 @@ from machine import Pin, SDCard, RTC
 from hardware import sdcard
 import network
 import ntptime
+import socket
 
 #
 #
@@ -200,3 +201,12 @@ def reset_m5():
     import esp32
     nvs = esp32.NVS("uiflow")
     nvs.set_u8("boot_option", 1)
+
+def check_connection(host, port):
+    try:
+        sock_ = socket.socket()
+        sock_.connect(socket.getaddrinfo(host, port)[0][-1])
+        sock_.close()
+        return True
+    except:
+        return False

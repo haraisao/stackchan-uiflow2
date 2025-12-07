@@ -72,8 +72,8 @@ class StackChan:
     if self.asr:
         self.web_server.registerCommand("/asr", self.asr.set_request)
 
-    if start:
-      self.start_web_server()
+    #if start:
+    #  self.start_web_server()
     return
   #
   # Start web service thread.
@@ -88,8 +88,6 @@ class StackChan:
     else:
       if self.connect_wlan(10):
         self.face.print_info("IP:" + self.wlan.ifconfig()[0] + ", "+state_)
-
-
     return
   
   def request_command(self, data):
@@ -371,11 +369,17 @@ class StackChan:
       self.motor.toggle_rand_motion()
       if self.motor.rand_motion:
         self.face.print_message("Motion On")
-        self.tracking_flag=True
       else:
-        self.tracking_flag=False
         self.face.print_message("Motion Off",0xff8888)
-      self.event_time = time.time()
+
+  def toggle_tracking(self):
+    if self.motor:
+      if self.tracking_flag:
+        self.face.print_message("Tracking Off", 0xff8888)
+        self.tracking_flag=False
+      else:
+        self.tracking_flag=True
+        self.face.print_message("Tracking On",0x88ff88)
 
   def set_face_id(self, id):
     self.face.set_face_id(id)
@@ -392,11 +396,12 @@ class StackChan:
       self.web_server.update()
     self.face.update()
     self.tracking_face()
+    #return
     #
     if self.motor:
       if self.motor.update():
-        #print("Debug", debug)
-        pass
+        print("Debug", debug)
+        return
     #
     if self.asr:
       res=self.asr.check_request()
