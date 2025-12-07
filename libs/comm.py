@@ -31,7 +31,10 @@ class Thread:
     #    _thread.exit()
   
     def start(self):
-        _thread.start_new_thread(self.run, ())
+        try:
+          _thread.start_new_thread(self.run, ())
+        except:
+          self.run()
 
     def run(self):
         self.target(*self.args, **self.kwargs)
@@ -276,7 +279,8 @@ class SocketServer(SocketPort):
       reader = self.reader.duplicate()
       newadaptor = SocketService(self, reader, name, conn, addr)
       if flag :
-        newadaptor.start()
+        #newadaptor.start()
+        newadaptor.run()
         return None
       return newadaptor
     except (Exception) as e:
@@ -361,10 +365,11 @@ class SocketService(SocketPort):
     self.socket = sock
     self.server_adaptor = server
     self.name=''
-    server.com_ports.append(self)
+    #server.com_ports.append(self)
   #
   # Threading...
   def run(self):
+    self.mainloop=True
     self.message_receiver(timeout=1.0)
     return
   #
@@ -376,7 +381,7 @@ class SocketService(SocketPort):
   def terminate(self):
     self.mainloop=False
     super().terminate()
-    gc.collect()
+    gc.mem_free()
     return
   
 ##########################

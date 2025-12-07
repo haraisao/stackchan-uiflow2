@@ -128,7 +128,7 @@ class StackChan:
   #
   def tracking_face(self):
     if not self.tracking_flag:
-      time.sleep_ms(100)
+      time.sleep_ms(50)
       return 
     face_pos_ = self.detect_face()
     if face_pos_ :
@@ -386,7 +386,7 @@ class StackChan:
   def update(self):
     debug = time.time() - self.debug_time
     if self.debug != debug:
-      #print(debug)
+      print(debug)
       self.debug = debug
     if self.web_server:
       self.web_server.update()
@@ -397,7 +397,6 @@ class StackChan:
       if self.motor.update():
         #print("Debug", debug)
         pass
-
     #
     if self.asr:
       res=self.asr.check_request()

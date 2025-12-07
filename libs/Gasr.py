@@ -35,6 +35,7 @@ class Gasr(Command):
     self._prebuf= b''
     self.request=None
     self.parent = None
+    self.response = None
   #
   #
   def calc_power(self, indata):
@@ -61,8 +62,8 @@ class Gasr(Command):
                           }
             }
     try:
-      response = requests2.post(url, json=request_data, headers=headers)
-      return response.text
+      self.response = requests2.post(url, json=request_data, headers=headers)
+      return self.response.text
     except:
       return ""
   #
@@ -144,6 +145,9 @@ class Gasr(Command):
       if res is None:
         self.request=None
       self.show_message("")
+      if self.response:
+        self.response.close()
+        self.response=None
       return res
     return False
   

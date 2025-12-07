@@ -118,6 +118,19 @@ def scan_wlan(wlan=None):
     aps_=wlan.scan()
     return [x[0].decode() for x in aps_]
 
+def wifi_connect(ssid, passwd):
+    wlan=network.WLAN(network.STA_IF)
+    aps_ = scan_wlan(wlan)
+    if ssid in aps_:
+        wlan.connect(ssid, passwd)
+        if wlan.isconnected():
+            print(wlan.ifconfig())
+        else:
+            print("Fail to connect Wifi")
+    else:
+        print("Can't find access_point", ssid)
+    return wlan
+
 ######
 #
 DAY_A = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']

@@ -55,6 +55,7 @@ class Gtts(Command):
         self.request = None
         self.set_volume(50)
         self.parent=None
+        self.response=None
     #
     #
     def setup_upd(self, port=10800):
@@ -106,6 +107,7 @@ class Gtts(Command):
     #
     def speak(self, data):
         response=self.text2speech(data)
+        res_=True
         if response:
             try:
                 result=response.json()
@@ -120,9 +122,10 @@ class Gtts(Command):
                     self.parent.face.stop_talk()              
             except:
                 print(result)
-                return False
-            return True
-        return False
+                res_ = False
+            res_ = True
+            response.close()
+        return res_
     #
     #
     def set_speaker(self, data):
