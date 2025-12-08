@@ -28,7 +28,7 @@ def del_mod(mod):
 #
 #
 def load_conf(fname):
-    with open(fname, "r") as f:
+    with open(fname, "r", encoding='utf-8') as f:
         conts = f.read()
     keys=conts.split("\n")
     res={}
@@ -42,9 +42,20 @@ def load_conf(fname):
 #
 #
 def get_file_contents(fname):
-    with open(fname, "r") as f:
+    with open(fname, "r", encoding="utf-8") as f:
         conts = f.read()
     return conts
+
+def load_json(fname):
+    data_ = get_file_contents(fname)
+    data = []
+    for line in data_.split("\n"):
+        pos = line.find("#")
+        if pos >= 0:
+            data.append(line[:pos])
+        else:
+            data.append(line)
+    return json.loads("\n".join(data))
 #
 #
 def mount_sd():

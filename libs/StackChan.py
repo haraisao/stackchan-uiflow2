@@ -22,15 +22,16 @@ class StackChan:
     util.mount_sd()
     gc.enable()
     try:
-      self.config=json.loads(util.get_file_contents("/sd/stackchan.json"))
+      self.config=util.load_json("/sd/stackchan.json")
     except:
       self.config={}
     # WLAN
     self.wlan = util.connect_wlan()
     self.camera_setupted = False
+    self.tracking_flag = False
+
     if self.config.get('camera_setup'):
       self.setup_camera()
-      self.tracking_flag = False
 
     #
     # face, motors, TTS client, ASR client
@@ -177,7 +178,7 @@ class StackChan:
   # Setup Text-to-speach(TTS) client
   def set_tts(self, name='google'):
     tts_name = name
-    if 'tts' in self.config:
+    if self.config.get('tts'):
       tts_name = self.config['tts']
 
     if tts_name == 'voicevox':
@@ -197,7 +198,7 @@ class StackChan:
   # Setup Automatic-speech-recognition(ASR) client
   def set_asr(self, name='google'):
     asr_name = name
-    if 'asr' in self.config:
+    if self.config.get('asr'):
       asr_name = self.config['asr']
 
     if asr_name == 'vosk':
@@ -220,7 +221,7 @@ class StackChan:
   #
   def setup_dialog(self, name='gemini'):
     dialog_name = name
-    if 'dialog' in self.config:
+    if self.config.get('dialog'):
       dialog_name = self.config['dialog']
   
     if dialog_name == 'gemini':
@@ -354,7 +355,7 @@ class StackChan:
   #
   #
   def show_battery_level(self):
-    self.face.print_message('Battery: %d' % M5.Power.getBatteryLevel())
+    self.face.print_message('Battery: %d %%' % M5.Power.getBatteryLevel())
     self.face.random_face()
     return
   
@@ -391,7 +392,7 @@ class StackChan:
   def update(self):
     debug = time.time() - self.debug_time
     if self.debug != debug:
-      print(debug)
+      #print(debug)
       self.debug = debug
     if self.web_server:
       self.web_server.update()
@@ -401,7 +402,7 @@ class StackChan:
     #
     if self.motor:
       if self.motor.update():
-        print("Debug", debug)
+        #print("Debug", debug)
         return
     #
     if self.asr:

@@ -1,19 +1,27 @@
 {
-    "motor": "Dynamixel",
-    "SG90": {"pan": "2", "titt": "9"},
-    "tts" : "google",
+    ## 使用しているモータの種別
+    "motor": "Dynamixel", ## Dynamixel or SG90
+    "SG90": {"pan": "2", "titt": "9"}, 
+    ## 音声合成のエンジン (google or voicevox)
+    "tts" : "google", 
     "google": {
         "lang": "ja_JP", "speakingRate": "1.2", "ssmlGender": "FEMALE",
         "voiceName": "ja-JP-Wavent-B", "pitch": "5.0", "volumeGain": "0",
         "sampleRate": "8000", "effectsProfileId": ""},
     "voicevox": {"host": "192.168.0.100"},
+    ## 音声合成のエンジン (google or vosk)
     "asr": "google",
     "vosk": {"host": "192.168.0.100"},
+    ## Webサーバーのポート番号
     "web_server": "80",
-    "camera_setup": 1,
-    "vflip": 1,
+    ## Cameraの初期化
+    "camera_setup": true,
+    ## カメラ画像を180度回転
+    "vflip": false,
+    ## 音声対話エンジン (gemini or openai)
     "dialog": "gemini",
     "gemini": {"model": "/gemini-2.5-flash:generateContent", "lang": "ja_JP"},
     "chatgpt": {"model": "gpt-5"},
+    ## 生成AIのプロンプト
     "prompt": "あたなは、小さなスーパーロボット「スタックチャン」です。現在、東京にいます。対話の応答は、東京にいることを前提に、30字以内で答えてください。"
 }
