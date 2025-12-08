@@ -365,7 +365,7 @@ class SocketService(SocketPort):
     self.socket = sock
     self.server_adaptor = server
     self.name=''
-    #server.com_ports.append(self)
+    #self.server_adaptor.com_ports.append(self)
   #
   # Threading...
   def run(self):
@@ -381,6 +381,7 @@ class SocketService(SocketPort):
   def terminate(self):
     self.mainloop=False
     super().terminate()
+    # self.server_adaptor.com_ports.remove(self)
     gc.mem_free()
     return
   

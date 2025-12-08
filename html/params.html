@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <title>Stack-chan params</title>
+        <meta name="viewport" content="width=device-width,initial-scale=1.0">
+        <meta charset="utf-8">
+
+        <script type="text/javascript" src="js/joy.min.js"></script>
+        <script type="text/javascript">
+            async function set_parameter(name, val){
+                var value = document.getElementById(val).value;
+                var data = {'cmd': 'set_param', 'name': name, 'value': value};
+                const res = await fetch('/command', {
+                    method: "POST",
+                    body: JSON.stringify(data),
+                });
+            }
+
+            async function get_parameters(){
+                var data = {'cmd': 'get_params', 'name': name};
+                const res = await fetch('/command', {
+                    method: "POST",
+                    body: JSON.stringify(data),
+                });
+                console.log(res);
+            }
+        </script>
+    </head>
+    <body>
+        <h1>アールティ版<br>スタックチャンの設定</h1>
+        <h2>モータ</h2>
+
+        <hr>
+        <a href="/">Back to Top</a>
+    </body>
+</html>
