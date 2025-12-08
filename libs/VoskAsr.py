@@ -72,8 +72,12 @@ class VoskAsr(Command):
     headers = {  'Content-Type' : 'application/json; charset=utf-8' }
     audio_data = binascii.b2a_base64(data, newline=False)
     request_data = audio_data.decode()
-    response = requests2.post(url, json=request_data, headers=headers)
-    return response.text
+    try:
+      response = requests2.post(url, json=request_data, headers=headers)
+      return response.text
+    except:
+      print("Error in rewuest")
+      return None
   #
   #
   def record_audio(self, tm=10, thr=-1):
@@ -114,11 +118,13 @@ class VoskAsr(Command):
     print("Reuqest ASR")
     if len(data) > 0:
       self.show_message("音声認識中…")
-      res=self.request_speech_recog(data)
       try:
+        res=self.request_speech_recog(data)
+        if res is None: return None
         print("RESPONSE:", res)
         return { 'result': res , 'error': ''}
       except:
+
         print("==== Fail")
         pass
       return { 'result': '', 'error': 'Fail to recoginze' }
