@@ -121,7 +121,6 @@ class StackChan:
       for res in detection_result:
         #kp = res.keypoint()
         face_pos.append([res.x(), res.y(), res.w(), res.h()])
-
     return face_pos
   #
   #
@@ -244,9 +243,8 @@ class StackChan:
         pass
     else:
       print("No such classe", dialog_name)
-    if self.dialog and 'prompt' in self.config:
+    if self.dialog and self.config.get('prompt'):
       self.dialog.set_prompt(self.config['prompt'])
-    
     return
   #
   # Connect Wireless LAN
@@ -358,22 +356,23 @@ class StackChan:
     self.face.print_message('Battery: %d %%' % M5.Power.getBatteryLevel())
     self.face.random_face()
     return
-  
+  #
+  #
   def start_dialog(self):
     data = '{"max_seconds": 6, "threshold": 41, "max_count": 1}'
     self.asr.set_request(data)
     return
-  
+  #
+  #
   def toggle_rand_motion(self):
     if self.motor:
-      #if time.time() - self.event_time < 2:
-      #  return
       self.motor.toggle_rand_motion()
       if self.motor.rand_motion:
         self.face.print_message("Motion On")
       else:
         self.face.print_message("Motion Off",0xff8888)
-
+  #
+  #
   def toggle_tracking(self):
     if self.motor:
       if self.tracking_flag:
@@ -382,11 +381,11 @@ class StackChan:
       else:
         self.tracking_flag=True
         self.face.print_message("Tracking On",0x88ff88)
-
+  #
+  #
   def set_face_id(self, id):
     self.face.set_face_id(id)
     return
-
   #
   # Spin once
   def update(self):
@@ -397,7 +396,8 @@ class StackChan:
     if self.web_server:
       self.web_server.update()
     self.face.update()
-    self.tracking_face()
+    if self.camera_setupted:
+      self.tracking_face()
     #return
     #
     if self.motor:

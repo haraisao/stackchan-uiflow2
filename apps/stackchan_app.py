@@ -4,11 +4,6 @@ import M5
 from M5 import *
 from hardware import sdcard
 
-if not "sd" in os.listdir("/"):
-  sdcard.SDCard(slot=3, width=1, miso=35, mosi=37, sck=36, cs=4)
-
-sys.path.append('/sd/scripts')
-
 from StackChan import StackChan
 from Button import Button
 
