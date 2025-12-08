@@ -33,7 +33,7 @@ class Voicevox(Command):
         self.setUrl(host, id)
         self.requesting=False
         self._volume = 50
-        
+        self.request = ""
         self.parent = None
     #
     #
@@ -56,7 +56,7 @@ class Voicevox(Command):
     def request_tts(self, txt):
         if self.requesting:
             return False
-
+        #print("voicevox", txt)
         self.requesting=True
         encode_txt=["%%%X" % x for x in txt.encode('utf-8')]
         res = requests2.post(self.query_url+"&text="+"".join(encode_txt), headers=self.header)
@@ -83,7 +83,7 @@ class Voicevox(Command):
         return self.request_tts(txt)
     #
     #
-    def play_wav(self, data, rate=8000):
+    def play_wav(self, data, rate=24000):
         if self.parent:
             self.parent.face.start_talk()
         if data[:4].decode() == 'RIFF' and data[8:12].decode == "WAVE":

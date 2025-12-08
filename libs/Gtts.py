@@ -145,6 +145,7 @@ class Gtts(Command):
     #
     def check_request(self):
         if self.request:
+            #print("Google TTS")
             self.show_message("応答中…")
             request = self.request.replace("!", "!\n")
             request = self.request.replace("?","?\n" )

@@ -25,6 +25,8 @@ class StackChan:
       self.config=util.load_json("/sd/stackchan.json")
     except:
       self.config={}
+
+    print(self.config)
     # WLAN
     self.wlan = util.connect_wlan()
     self.camera_setupted = False
@@ -182,7 +184,10 @@ class StackChan:
 
     if tts_name == 'voicevox':
       import Voicevox
-      self.tts = Voicevox.Voicevox(self.config['tts_ip'])
+      voice_index=1
+      if self.config.get('voice_index'):
+        voice_index = self.config.get('voice_index')
+      self.tts = Voicevox.Voicevox(self.config['tts_ip'], voice_index)
     elif tts_name == 'melo_tts':
       import MeloTts
       self.tts = MeloTts.MeloTts()
