@@ -30,7 +30,7 @@ def append_prefix(pref, flist):
 def setup():
     lib_list=["Button.py", "Chatgpt.py", "comm.py", "DynamixelDriver.py", "Face.py", 
               "Gasr.py", "Gemini.py", "Gtts.py", "SG90Driver.py", "StackChan.py",
-              "util.py", "WebServer.py"]
+              "util.py", "WebServer.py", "Voicevox.py", "VoskAsr.py"]
     app_list=["stackchan_app.py"]
     install_files(append_prefix('libs/', lib_list), '/flash/libs')
     install_files(append_prefix('apps/', app_list), '/flash/apps')

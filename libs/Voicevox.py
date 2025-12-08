@@ -86,7 +86,7 @@ class Voicevox(Command):
     def play_wav(self, data, rate=24000):
         if self.parent:
             self.parent.face.start_talk()
-        if data[:4].decode() == 'RIFF' and data[8:12].decode == "WAVE":
+        if data[:4].decode() == 'RIFF' and data[8:12].decode() == "WAVE":
             fmt=struct.unpack("H", data[20:22])[0]
             start=44
             if fmt != 1:
@@ -95,6 +95,7 @@ class Voicevox(Command):
             rate=struct.unpack("I", data[24:28])[0]
             play_audio(data[start:], rate, self._volume)
         else:
+            print("Unknown format")
             play_audio(data, rate, self._volume)
 
         if self.parent:

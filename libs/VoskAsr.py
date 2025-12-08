@@ -37,6 +37,7 @@ class VoskAsr(Command):
     self.silence = bytearray(8000*5)
     
     self.parent = None
+    self.request = None
   #
   #
   def calc_power(self, indata):
@@ -123,7 +124,7 @@ class VoskAsr(Command):
       return { 'result': '', 'error': 'Fail to recoginze' }
     else:
       print("==== No sound")
-    return { 'result': '', 'error': 'No sound' }
+    return None
   #
   #
   def run(self):
@@ -152,7 +153,7 @@ class VoskAsr(Command):
           self.show_message("音声入力…", 0x8888ff)
           param=json.loads(self.request)
           #print(param)
-          res=self.do_process(param['max_seconds'], param['threshold'], param['max_count'])
+          res=self.do_process(param['max_seconds'], param['threshold'])
           if res is None:
             self.request=None
           self.show_message("")
