@@ -394,6 +394,14 @@ class Face:
         self.bottom_buffer.push(0,214)
         return
     #
+    def random_face(self):
+        if self.current_face == 'normal':
+            idx = int(len(self.motions_all) * random.random())
+            self.set_face_id(self.motions_all[idx])
+        else:
+            self.set_face_id('normal')
+        self.draw(self.current_face)
+    #
     #
     def update_motion_interval(self):
         if self.check_blink_time() and self.current_face == 'smile':

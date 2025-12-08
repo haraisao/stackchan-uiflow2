@@ -355,6 +355,7 @@ class StackChan:
   #
   def show_battery_level(self):
     self.face.print_message('Battery: %d' % M5.Power.getBatteryLevel())
+    self.face.random_face()
     return
   
   def start_dialog(self):
