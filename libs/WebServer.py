@@ -13,7 +13,7 @@ import json
 class WebServer:
   #
   #
-  def __init__(self, port=80, top="/sd/html"):
+  def __init__(self, port=80, top="/flash/html"):
     if type(port) == str: port = int(port)
     self.port = port
     self.reader = comm.HttpReader(top)

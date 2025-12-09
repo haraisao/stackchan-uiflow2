@@ -14,7 +14,7 @@ class Gemini(object):
   #
   def __init__(self):
     self._endpoint = "https://generativelanguage.googleapis.com/v1beta/models"
-    self.conf = util.load_conf("/sd/apikey.txt")
+    self.conf = util.load_conf("/flash/apikey.txt")
     self._apikey = self.conf['GEMINI_KEY']
 
     self.model = "/gemini-2.5-flash:generateContent"

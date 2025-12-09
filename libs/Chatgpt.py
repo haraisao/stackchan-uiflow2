@@ -15,7 +15,7 @@ class ChatGPT(object):
   #
   def __init__(self):
     self._endpoint = "https://api.openai.com/v1/responses"
-    self.conf = util.load_conf("/sd/apikey.txt")
+    self.conf = util.load_conf("/flash/apikey.txt")
     self._apikey = self.conf['OPENAI_KEY']
 
     #self._endpoint = "http://localhost:1234/v1/responses"

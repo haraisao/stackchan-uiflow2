@@ -19,10 +19,10 @@ class StackChan:
   #
   #
   def __init__(self):
-    util.mount_sd()
+    #util.mount_sd()
     gc.enable()
     try:
-      self.config=util.load_json("/sd/stackchan.json")
+      self.config=util.load_json("/flash/stackchan.json")
     except:
       self.config={}
 

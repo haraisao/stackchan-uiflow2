@@ -10,6 +10,7 @@ from hardware import sdcard
 import network
 import ntptime
 import socket
+import esp32
 
 #
 #
@@ -65,28 +66,34 @@ def mount_sd():
     return
 #
 #
-def mount_sd_old():
-    if "sd" in os.listdir("/"):
-        return
-    sd=SDCard(slot=2, width=1, miso=Pin(35), mosi=Pin(37), sck=Pin(36), cs=Pin(4))
-    os.mount(sd, "/sd")
-    return
+def get_config(val, key):
+    if type(key) is list:
+        keys_ = key
+    else:
+        keys_ = key.split("/")
+    val_ = val
+    for k in keys_:
+        val_=val_.get(k)
+        if val_ is None: return None
+    return val_
 #
 #
-def get_wlan_conf():
-    mount_sd()
+def get_wlan_conf(file="/flash/wlan.json"):
+    nvs = esp32.NVS("uiflow")
+    res = {"Firmware": {"essid": nvs.get_str("ssid0"), "passwd": nvs.get_str("pswd0")}}
     try:
-        return json.loads(get_file_contents("/sd/wlan.json"))
+        conf=json.loads(get_file_contents(file))
+        res |= conf
     except:
-        return None
+        pass
+    return res
 #
 #
 def setup_wlan(apoint="Home", passwd="", n=3):
-    mount_sd()
     apoint_ = apoint
     passwd_ = passwd
     try:
-        wlan_conf=json.loads(get_file_contents("/sd/wlan.json"))
+        wlan_conf=get_wlan_conf()
         if apoint in wlan_conf:
             apoint_ = wlan_conf[apoint]["essid"]
             passwd_ = wlan_conf[apoint]["passwd"]
@@ -94,6 +101,8 @@ def setup_wlan(apoint="Home", passwd="", n=3):
         pass
         
     wlan=network.WLAN(network.STA_IF)
+    if wlan.isconnected():
+        wlan.disconnect()
     wlan.config(reconnects=n)
     print("Connect:", apoint_, passwd_)
     try:
@@ -103,15 +112,17 @@ def setup_wlan(apoint="Home", passwd="", n=3):
     return wlan
 #
 #
-def connect_wlan(wlan=None,apoints=["Home", "Work", "Mobile"], retry=3):
+def connect_wlan(wlan=None,apoints=["Firmware", "Home", "Work", "Mobile"], retry=3):
     conf = get_wlan_conf()
     if wlan is None:
         wlan=network.WLAN(network.STA_IF)
+    if wlan.isconnected():
+        wlan.disconnect()
     wlan.config(reconnects=retry)
     aps_ = scan_wlan(wlan)
 
     for name in apoints:
-        if conf[name]['essid'] in aps_:
+        if get_config(conf, [name,'essid'])  in aps_:
             try:
                 wlan.connect(conf[name]['essid'], conf[name]['passwd'])
                 if wlan.isconnected():
@@ -209,7 +220,6 @@ def remove_all_file(dir):
         os.remove(fname)
 
 def reset_m5():
-    import esp32
     nvs = esp32.NVS("uiflow")
     nvs.set_u8("boot_option", 1)
 
@@ -221,3 +231,15 @@ def check_connection(host, port):
         return True
     except:
         return False
+    
+def make_dirs(path):
+    paths = path.split("/")
+    p="/"
+    for f in paths:
+        if f:
+            print(p)
+            if not f in os.listdir(p):
+                os.mkdir(p+f)
+            p = p+f+"/"
+    return True
+    

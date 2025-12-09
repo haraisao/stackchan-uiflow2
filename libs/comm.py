@@ -924,8 +924,8 @@ class Command:
 ######################################
 #  HTTP Server
 #
-def create_httpd(num=80, top="/sd/html/", command=None, host=""):
-  mount_sd()
+def create_httpd(num=80, top="/flash/html/", command=None, host=""):
+  #mount_sd()
   if type(num) == str: num = int(num)
   reader = HttpReader(top)
   return SocketServer(reader, "Web", host, num)
