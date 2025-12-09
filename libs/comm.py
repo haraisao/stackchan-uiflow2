@@ -182,7 +182,7 @@ class SocketPort(Thread):
   #  Background job ( message receiver )
   def message_receiver(self, timeout=1.0):
     while self.mainloop:
-      print("-- message_recv")
+      #print("-- message_recv")
       data = self.receive_data(timeout=timeout)
 
       if data  == -1:
@@ -194,7 +194,7 @@ class SocketPort(Thread):
       else :
         print("Umm...: %s" % self.name)
         print(data)
-    print("terminate")
+    #print("terminate")
     gc.collect()
     gc.mem_free()
     self.terminate()

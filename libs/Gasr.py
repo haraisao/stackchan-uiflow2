@@ -20,7 +20,7 @@ class Gasr(Command):
   def __init__(self, node=None, language='ja-JP'):
     self._endpoint = 'https://speech.googleapis.com/v1/speech:recognize'
     self.key_config = util.load_conf("/flash/apikey.txt")
-    self._apikey = self.key_config['GOOGLE_SPEECH_KEY']
+    self._apikey = self.key_config.get('GOOGLE_SPEECH_KEY')
 
     self._lang=language
 

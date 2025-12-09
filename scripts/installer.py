@@ -32,10 +32,13 @@ repositories={
 def basename(fname):
   return fname.split("/")[-1]
 #
-def save_file(data, fname, to_dir):
+def save_file(data, fname, to_dir, bin_flag=False):
   make_dirs(to_dir)
   to_file = to_dir+"/"+ basename(fname)
-  ft = open(to_file, 'w')
+  if bin_flag :
+    ft = open(to_file, 'wb')
+  else:
+    ft = open(to_file, 'w', encoding='utf-8')
   ft.write(data)
   ft.close()
 #
@@ -48,6 +51,12 @@ def make_dirs(path):
                 os.mkdir(p+f)
             p = p+f+"/"
     return True
+
+def is_image_file(fname):
+  ext = basename(fname).split('.')[-1]
+  if ext in ['ico', 'png', 'jpg']:
+    return True
+  return False
 #
 def fetch_file(fname, to_dir, repo="2.Orig"):
   global repositories
@@ -56,21 +65,30 @@ def fetch_file(fname, to_dir, repo="2.Orig"):
     url_ = url_base+fname
     res = requests2.get(url_)
     if res.status_code == 200:
+      if is_image_file(fname):
+        save_file(res.content, fname, to_dir, True)
+      else:
         save_file(res.text, fname, to_dir)
+    else:
+       print("request error")
 #
 def install_files(src_files,to_dir='/flash/libs', repo="2.Orig"):
   global textarea0
   for fname in src_files:
-      textarea0.add_text(f"Get file: {fname} to {to_dir}\n")
+      try:
+        textarea0.add_text(f"Get file: {fname} to {to_dir}\n")
+      except:
+         pass
+      print(f"Get file: {fname} to {to_dir}")
       fetch_file(fname, to_dir, repo)
 #
 def append_prefix(pref, flist):
     return [pref+x for x in flist]
 #
-def install_files( repo="2.Orig" ):
+def install_all_files( repo="2.Orig" ):
   lib_list=["Button.py", "Chatgpt.py", "comm.py", "DynamixelDriver.py", "Face.py", 
             "Gasr.py", "Gemini.py", "Gtts.py", "SG90Driver.py", "StackChan.py",
-            "util.py", "WebServer.py"]
+            "util.py", "WebServer.py", "Voicevox.py", "VoskAsr.py"]
   app_list=["stackchan_app.py"]
   config_list=["stackchan.json", "wlan.json", "apikey.txt"]
   html_list=["index.html", "asr_tts.html", "favion.ico", "edit_file.html", "params.html"]
@@ -82,7 +100,14 @@ def install_files( repo="2.Orig" ):
   install_files(append_prefix('config/', config_list), '/flash', repo)
   install_files(append_prefix('html/', html_list), '/flash/html', repo)
   install_files(append_prefix('html/js/', js_list), '/flash/html/js', repo)
-  install_files(append_prefix('html/imagse/',image_list), '/flash/html/images', repo)
+  install_files(append_prefix('html/images/',image_list), '/flash/html/images', repo)
+
+def test_dl( repo="2.Orig"):
+  image_list=["face.png"]
+  html_list=[ "favion.ico"]
+  install_files(append_prefix('html/', html_list), '/flash/html', repo)
+  install_files(append_prefix('html/images/',image_list), '/flash/html/images', repo)
+
 #
 def get_file_contents(fname):
   with open(fname, "r") as f:
@@ -164,13 +189,14 @@ def button1_pressed_event(event_struct):
     idx=dropdown1.get_selected()
     repo = dropdown1.get_options()[idx]
     textarea0.add_text("Reop:"+repo+"\n")
-    install_files(repo)
+    install_all_files(repo)
+    textarea0.add_text("\n ...finished")
 #  
 def button1_event_handler(event_struct):
     global page0, button1,textarea0
     event = event_struct.code
     if event == lv.EVENT.PRESSED and True:
-        textarea0.set_text("")
+        textarea0.set_text("Installing...")
 
     if event == lv.EVENT.RELEASED and True:
         button1_pressed_event(event_struct)

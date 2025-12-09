@@ -8,7 +8,7 @@
     "asr_ip": "192.168.0.100",
     "web_server": "80",
     "dialog": "gemini",
-    "camera_setup": 1,
-    "vflip": 0,
+    "camera_setup": true,
+    "vflip": false,
     "prompt": "あたなは、小さなスーパーロボット「スタックチャン」です。現在、東京にいます。対話の応答は、東京にいることを前提に、２０字以内で答えてください。"
 }

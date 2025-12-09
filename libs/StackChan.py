@@ -162,6 +162,8 @@ class StackChan:
       if self.config['motor'] == 'Dynamixel':
         import DynamixelDriver
         self.motor = DynamixelDriver.DynamixelDriver()
+        if self.motor._controls is None:
+          self.motor = None
       elif self.config['motor'] == 'SG90':
         import SG90Driver
         try:

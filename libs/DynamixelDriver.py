@@ -223,15 +223,24 @@ class DynamixelDriver:
     def __init__(self):
         self._pan = Dynamixel(1)
         self._tilt = Dynamixel(2)
+        #print("get current_pos")
         pan_offset = self._pan.readPresentPosition()
-        tilt_offset = self._tilt.readPresentPosition()
-        self._controls = [
-                            PConrtol(self._pan, 0.15, 80, 'pan', pan_offset, -180, 180),
-                            PConrtol(self._tilt, 4, 800, 'tilt', tilt_offset, -20, 7)
-                          ]
+        if pan_offset:
+            tilt_offset = self._tilt.readPresentPosition()
+        else:
+            tilt_offset = None
+        #print("check")
+        if pan_offset and tilt_offset:
+            self._controls = [
+                                PConrtol(self._pan, 0.15, 80, 'pan', pan_offset, -180, 180),
+                                PConrtol(self._tilt, 4, 800, 'tilt', tilt_offset, -20, 7)
+                            ]
+            self.control_timer=machine.Timer(2)
+        else:
+            self._controls=None
+            self.control_timer=None
         self._torque = True
         self._initialzed = False
-        self.control_timer=machine.Timer(2)
         self.rand_motion = False
         self.start_time=time.time()
     #
@@ -292,6 +301,7 @@ class DynamixelDriver:
     #
     #
     def update(self):
+        if self._controls is None: return
         spend_time = time.time() - self.start_time
         if self.rand_motion and spend_time > random.random() * 30 + 10:
             self.random_motion()

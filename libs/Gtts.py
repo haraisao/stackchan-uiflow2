@@ -41,7 +41,7 @@ class Gtts(Command):
     def __init__(self):
         self._endpoint = "https://texttospeech.googleapis.com/v1/text:synthesize"
         self.key_config = util.load_conf("/flash/apikey.txt")
-        self._apikey = self.key_config['GOOGLE_SPEECH_KEY']
+        self._apikey = self.key_config.get('GOOGLE_SPEECH_KEY')
 
         self._lang = "ja-JP"
         self._speakingRate = "1.2"
