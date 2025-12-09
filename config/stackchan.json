@@ -1,5 +1,5 @@
 {
-    "motor": "Dynamixel",
+    "motor": "SG90",
     "sg90_pan": "2",
     "sg90_tilt": "9",
     "tts" : "google",
