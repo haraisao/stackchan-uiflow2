@@ -22,7 +22,7 @@ class StackChan:
     #util.mount_sd()
     gc.enable()
     try:
-      self.config=util.load_json("/flash/stackchan_new.json")
+      self.config=util.load_json("/flash/stackchan.json")
     except:
       self.config={}
 
