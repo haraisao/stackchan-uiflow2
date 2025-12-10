@@ -36,15 +36,57 @@
                 } );
 
                 const data = await response.json();
-                console.log(data);
+                restore_config(data);
+            }
+
+            function restore_config(data) {
+               console.log(data);
+               document.getElementById("motor_type").value = data['motor'];
+               document.getElementById("motor_pan").value = data['SG90']['pan'];
+               document.getElementById("motor_tilt").value = data['SG90']['tilt'];
+
+               document.getElementById("asr_type").value = data['asr'];
+               document.getElementById("tts_type").value = data['tts'];
+
+               document.getElementById("web_port").value = data['web_server'];
             }
         </script>
     </head>
-    <body>
+    <body onload="get_params('config')">
         <h1>アールティ版<br>スタックチャンの設定</h1>
-        <button onclick="get_params('config')">Get</button>
+      <!--  <button onclick="get_params('config')">Get</button> -->
         <h2>モータ</h2>
+           <ul>
+             <li>Type:　<select id="motor_type">
+                         <option value="Dynamixel" /> Dynamixel
+                         <option value="SG90" /> SG90
+                        </select></li>
+             <ul>SG90 options:
+             <li>Pan_port: <input id="motor_pan" value="" size="2"/></li>
+             <li>Tilt_port: <input id="motor_tilt" value="" size="2"> </li>
+             </ul>
+           </ul>
 
+        <h2>音声認識</h2>
+           <ul>
+             <li>Service:　<select id="asr_type">
+                         <option value="google" /> Google Speech API
+                         <option value="vosk" /> Vosk server(local)
+                        </select></li>
+           </ul>
+
+        <h2>音声合成</h2>
+           <ul>
+             <li>Service:　<select id="tts_type">
+                         <option value="google" /> Google Speech API
+                         <option value="voicevox" /> Voicevox_engine server(local)
+                        </select></li>
+           </ul>
+
+        <h2>Web Server</h2>
+           <ul>
+             <li>Port:　<input id="web_port" value="" size="8"> </li>
+           </ul>
         <hr>
         <a href="/">Back to Top</a>
     </body>
