@@ -885,17 +885,14 @@ def response200(ctype="text/plain", contents=""):
   res  = "HTTP/1.0 200 OK\r\n"
   res += "Date: "+date+"\r\n"
   res += "Content-Type: "+ctype+"\r\n"
-  if ctype.startswith('image'):
-    res += "Content-Length: "+str(len(contents))+"\r\n"
-  else:
+  if type(contents) is str:
     res += "Content-Length: "+str(len(contents.encode()))+"\r\n"
-  res += "\r\n"
-
-  if ctype.startswith('image'):
-    return res.encode() + contents 
+    res += "\r\n"
+    return res + contents
   else:
-    res += contents
-  return res
+    res += "Content-Length: "+str(len(contents))+"\r\n"
+    res += "\r\n"
+    return res.encode() + contents 
 #
 #
 def response404():
