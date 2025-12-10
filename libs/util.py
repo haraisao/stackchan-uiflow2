@@ -40,6 +40,12 @@ def load_conf(fname):
         except:
             pass
     return res
+
+def save_conf(fname, conf):
+    with open(fname, "w", encoding='utf-8') as file:
+        for k in conf:
+            file.write(f"{k}={conf[k]}\n")
+    return
 #
 #
 def get_file_contents(fname):
@@ -57,6 +63,11 @@ def load_json(fname):
         else:
             data.append(line)
     return json.loads("\n".join(data))
+
+def save_json(fname, conf):
+    with open(fname, "w", encoding='utf-8') as file:
+        file.write(json.dumps(conf))
+    return
 #
 #
 def mount_sd():
@@ -66,7 +77,7 @@ def mount_sd():
     return
 #
 #
-def get_config(val, key):
+def get_config(val, key, default_val=None):
     if type(key) is list:
         keys_ = key
     else:
@@ -74,8 +85,23 @@ def get_config(val, key):
     val_ = val
     for k in keys_:
         val_=val_.get(k)
-        if val_ is None: return None
+        if val_ is None: return default_val
     return val_
+
+def set_config(conf, key, val):
+    if type(key) is list:
+        keys_ = key
+    else:
+        keys_ = key.split("/")
+    k_ = keys_[-1]
+    conf_=conf
+    for k in keys_[:-1]:
+        if conf_.get(k) is None:
+            conf_[k]={}
+        conf_=conf_[k]
+    conf_[k_]=val
+    return
+
 #
 #
 def get_wlan_conf(file="/flash/wlan.json"):

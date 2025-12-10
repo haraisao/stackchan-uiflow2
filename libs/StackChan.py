@@ -22,9 +22,12 @@ class StackChan:
     #util.mount_sd()
     gc.enable()
     try:
-      self.config=util.load_json("/flash/stackchan.json")
+      self.config=util.load_json("/flash/stackchan_new.json")
     except:
       self.config={}
+
+    self.apikeys = util.load_conf("/flash/apikey.txt")
+    self.wlan_conf = util.load_json("/flash/wlan.json")
 
     print(self.config)
     # WLAN
@@ -55,10 +58,7 @@ class StackChan:
   # Create web server
   def init_web(self, n=80, start=False):
     if self.config.get('web_server'):
-      try:
-        port = int(self.config['web_server'])
-      except:
-        port = n
+      port = int(self.config['web_server'])
     else:
       port = n
   
@@ -95,11 +95,51 @@ class StackChan:
   
   def request_command(self, data):
     param=json.loads(data)
-    if param['cmd'] == 'detect_face':
+    cmd_=param.get('cmd')
+    if cmd_ == 'detect_face':
       self.tracking_face()
       return True
-    elif param['cmd'] == 'face_tracking':
-      self.tracking_flag=param['data']
+    elif cmd_ == 'face_tracking':
+      self.tracking_flag=param.get('data')
+      return True
+    elif cmd_ == 'set_param':
+      if param.get('name'):
+        util.set_config(self.config, param.get("name"), param.get("value"))
+      return True
+    elif cmd_ == 'get_param':
+      res = util.get_config(self.config, param.get('name'))
+      return res
+    
+    elif cmd_ == 'get_parameters':
+      name=param.get('name')
+      if name == 'apikey':
+        return self.apikeys
+      elif name == 'wlan':
+        return self.wlan_conf
+      else:
+        return self.config
+    elif cmd_ == 'set_key':
+      if param.get('name'):
+        util.set_config(self.apikeys, param.get("name"), param.get("value"))
+      return True
+    elif cmd_ == 'get_key':
+      res = util.get_config(self.apikeys, param.get('name'))
+      return res
+    elif cmd_ == 'save_apikey':
+      util.save_conf('/flash/apikey.txt', self.apikeys)
+      return True
+    elif cmd_ == 'save_config':
+      util.save_json('/flash/stackchan.json', self.config)
+      return True
+    elif cmd_ == 'set_wlan':
+      if param.get('name'):
+        util.set_config(self.wlan_conf, param.get("name"), param.get("value"))
+      return True
+    elif cmd_ == 'set_wlan':
+      res = util.get_config(self.wlan_conf, param.get('name'))
+      return res
+    elif cmd_ == 'save_wlan':
+      util.save_json('/flash/wlan.json', self.wlan_conf)
       return True
     return False
   #
@@ -158,20 +198,19 @@ class StackChan:
   #
   # Setup motor driver
   def set_motor(self):
+    motor_type=self.config.get('motor')
     try:
-      if self.config['motor'] == 'Dynamixel':
+      if motor_type == 'Dynamixel':
         import DynamixelDriver
         self.motor = DynamixelDriver.DynamixelDriver()
         if self.motor._controls is None:
           self.motor = None
-      elif self.config['motor'] == 'SG90':
+      elif motor_type == 'SG90':
         import SG90Driver
-        try:
-          self.motor = SG90Driver.SG90Driver(
-                          h_port=int(self.config['sg90_pan']),
-                          v_port=int(self.config['sg90_tilt']))
-        except:
-          self.motor = SG90Driver.SG90Driver()
+        offset_ = util.get_config(self.config, 'SG90/offset', 56)
+        h_port_=util.get_config(self.config, "SG90/pan", 2)
+        v_port_=util.get_config(self.config, "SG90/tilt", 9)
+        self.motor = SG90Driver.SG90Driver(offset_, h_port_, v_port_)
       else:
         self.motor = None
     except:
@@ -179,37 +218,33 @@ class StackChan:
     return
   #
   # Setup Text-to-speach(TTS) client
-  def set_tts(self, name='google'):
-    tts_name = name
-    if self.config.get('tts'):
-      tts_name = self.config['tts']
-
+  def set_tts(self):
+    tts_name = util.get_config(self.config, 'tts', 'google')
     if tts_name == 'voicevox':
       import Voicevox
-      voice_index=1
-      if self.config.get('voice_index'):
-        voice_index = self.config.get('voice_index')
-      self.tts = Voicevox.Voicevox(self.config['tts_ip'], voice_index)
+      voice_index = util.get_config(self.config, 'voicevox/voice_index', 1)
+      host = util.get_config(self.config, 'voicevox/host', "192.168.0.1")
+      self.tts = Voicevox.Voicevox(host, voice_index)
     elif tts_name == 'melo_tts':
       import MeloTts
       self.tts = MeloTts.MeloTts()
     else:
       import Gtts
       self.tts = Gtts.Gtts()
+      self.tts.set_config(self.config)
     
     if self.tts:
       self.tts.parent=self
     return
   #
   # Setup Automatic-speech-recognition(ASR) client
-  def set_asr(self, name='google'):
-    asr_name = name
-    if self.config.get('asr'):
-      asr_name = self.config['asr']
+  def set_asr(self):
+    asr_name = util.get_config(self.config, 'asr', 'google')
 
     if asr_name == 'vosk':
       import VoskAsr
-      self.asr = VoskAsr.VoskAsr(self.config['asr_ip'])
+      host_ = util.get_config(self.config, 'vosk/host', "192.168.0.1")
+      self.asr = VoskAsr.VoskAsr(host_)
     elif asr_name == 'llm_asr':
       print("LLM-ASR not supported")
       self.asr = None
@@ -219,27 +254,28 @@ class StackChan:
     else:
       import Gasr
       self.asr = Gasr.Gasr()
+      self.asr.set_config(self.config)
 
     if self.asr:
       self.asr.parent = self
     return
   #
   #
-  def setup_dialog(self, name='gemini'):
-    dialog_name = name
-    if self.config.get('dialog'):
-      dialog_name = self.config['dialog']
-  
+  def setup_dialog(self):
+    dialog_name = util.get_config(self.config, 'dialog', 'gemini')
     if dialog_name == 'gemini':
       import Gemini
       try:
         self.dialog = Gemini.Gemini()
+        self.dialog.model = util.get_config(self.config, "gemini/model", "/gemini-2.5-flash:generateContent")
+        self.dialog._lang = util.get_config(self.config, "gemini/lang", "ja_JP")
       except:
         pass
     elif dialog_name == 'openai':
       import Chatgpt
       try:
         self.dialog = Chatgpt.ChatGPT()
+        self.dialog.model = util.get_config(self.config, "openai/model", "gpt-5")
       except:
         pass
     elif dialog_name == 'lmstudio':
@@ -250,8 +286,9 @@ class StackChan:
         pass
     else:
       print("No such classe", dialog_name)
-    if self.dialog and self.config.get('prompt'):
-      self.dialog.set_prompt(self.config['prompt'])
+
+    if self.dialog:
+      self.dialog.set_prompt(util.get_config(self.config, 'prompt', ''))
     return
   #
   # Connect Wireless LAN

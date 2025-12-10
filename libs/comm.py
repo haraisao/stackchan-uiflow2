@@ -572,14 +572,17 @@ class HttpReader(CommReader):
     self.clearResponse()
     cmd = header["Http-Command"]
     fname = header["Http-FileName"].split('?')
-
     if cmd == "GET":
       contents = get_file_contents(fname[0], self.dirname)
       ctype = get_content_type(fname[0])
+
       if contents is None:
         response = response404()
       else:
-        response = response200(ctype, contents)
+        if ctype.startswith('image'):
+          response = response200(ctype, contents)
+        else:
+          response = response200(ctype, contents.decode())
       self.sendResponse(response)
 
     elif cmd == "POST":
@@ -801,12 +804,11 @@ class HttpCommand(CommCommand):
 def get_file_contents(fname, dirname="."):
   contents = None
   try:
-    f=open(dirname+fname,'rb')
-    contents = f.read()
-    f.close()
+    with open(dirname+fname,'rb') as file:
+      contents = file.read()
   except:
     pass
-  return contents.decode()
+  return contents
 #
 #
 def get_content_type(fname):
@@ -814,6 +816,7 @@ def get_content_type(fname):
   htmext=["htm", "html"]
   ctype = "text/plain"
   ext=fname.split(".")[-1]
+
   if htmext.count(ext) > 0:
     ctype = "text/html"
   elif ext == "txt" :
@@ -826,7 +829,9 @@ def get_content_type(fname):
     ctype = "text/csv"
   elif ext == "jpg" :
     ctype = "image/jpeg"
-  elif imgext.count(ext) > 0:
+  elif ext == "ico" :
+    ctype = "image/x-icon"
+  elif ext in imgext:
     ctype = "image/"+ext
   else:
     pass
@@ -880,9 +885,16 @@ def response200(ctype="text/plain", contents=""):
   res  = "HTTP/1.0 200 OK\r\n"
   res += "Date: "+date+"\r\n"
   res += "Content-Type: "+ctype+"\r\n"
-  res += "Content-Length: "+str(len(contents.encode()))+"\r\n"
+  if ctype.startswith('image'):
+    res += "Content-Length: "+str(len(contents))+"\r\n"
+  else:
+    res += "Content-Length: "+str(len(contents.encode()))+"\r\n"
   res += "\r\n"
-  res += contents
+
+  if ctype.startswith('image'):
+    return res.encode() + contents 
+  else:
+    res += contents
   return res
 #
 #

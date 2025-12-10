@@ -37,6 +37,12 @@ class Gasr(Command):
     self.parent = None
     self.response = None
   #
+  def set_config(self, conf):
+    self._lang = util.get_config(conf, "google/lang", "ja-JP")
+    self._frame_rate = util.get_config(conf, "google/sampleRateHertz",8000)
+    #print("Gasr:", self._lang, self._frame_rate)
+    return
+  #
   #
   def calc_power(self, indata):
     indata2 = struct.unpack(f"{len(indata) / 2:.0f}h", indata)

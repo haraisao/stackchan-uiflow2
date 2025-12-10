@@ -65,6 +65,18 @@ class Gtts(Command):
         self.poll = select.poll()
         self.poll.register(self.udp, select.POLLIN)
         return
+    
+    def set_config(self, conf):
+        self._lang = util.get_config(conf, "google/lang", "ja-JP")
+        self._speakingRate = util.get_config(conf, "google/speakingRate", "1.2")
+        self._ssmlGender = util.get_config(conf, "google/ssmlGender","FEMALE")
+        self._voiceName = util.get_config(conf, "google/voiceName","ja-JP-Wavenet-B")
+        self._pitch = util.get_config(conf, "google/pitch","5.0")
+        self._volumeGain = util.get_config(conf, "google/volumeGain","0")
+        self._sampleRate = util.get_config(conf, "google/sampleRate","8000")
+        self._effectsProfileId = util.get_config(conf, "google/effectsProfileId","")
+        #print("Gtts:", self._lang, self._speakingRate,self._ssmlGender,self._voiceName,self._pitch,self._volumeGain,self._sampleRate,self._effectsProfileId)
+        return
     #
     #
     def text2speech(self, text):
