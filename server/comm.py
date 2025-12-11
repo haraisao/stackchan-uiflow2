@@ -724,7 +724,10 @@ class HttpReader(CommReader):
         if contents is None:
           response = self.command.response404()
         else:
-          response = self.command.response200(ctype, contents)
+          if ctype.startswith("image"):
+            response = self.command.response200(ctype, contents)
+          else:
+            response = self.command.response200(ctype, contents.decode())
         self.sendResponse(response)
 
     elif cmd == "POST":
@@ -1055,10 +1058,14 @@ class HttpCommand(CommCommand):
     res  = "HTTP/1.0 200 OK\r\n"
     res += "Date: "+date+"\r\n"
     res += "Content-Type: "+ctype+"\r\n"
-    res += "Content-Length: "+str(len(contents.encode()))+"\r\n"
-    res += "\r\n"
-    res += contents
-    return res
+    if type(contents) is str:
+      res += "Content-Length: "+str(len(contents.encode()))+"\r\n"
+      res += "\r\n"
+      return res + contents
+    else:
+      res += "Content-Length: "+str(len(contents))+"\r\n"
+      res += "\r\n"
+      return res.encode() + contents
 
   def response404(self):
     date = get_now_str()
@@ -1565,13 +1572,12 @@ class CometManager:
 def get_file_contents(fname, dirname="."):
   contents = None
   try:
-    f=open(dirname+fname,'rb')
-    contents = f.read()
-    f.close()
+    with open(dirname+fname,'rb') as file:
+      contents = file.read()
   except:
     print( "ERROR!! get_file_contents [%s, %s] " % (dirname, fname))
     pass
-  return contents.decode()
+  return contents
 
 #
 #
@@ -1581,6 +1587,7 @@ def get_content_type(fname):
   htmext=["htm", "html"]
   ctype = "text/plain"
   ext=fname.split(".")[-1]
+
   if htmext.count(ext) > 0:
     ctype = "text/html"
   elif ext == "txt" :
@@ -1593,6 +1600,8 @@ def get_content_type(fname):
     ctype = "text/csv"
   elif ext == "jpg" :
     ctype = "image/jpeg"
+  elif ext == "ico" :
+    ctype = "image/x-icon"
   elif imgext.count(ext) > 0:
     ctype = "image/"+ext
   else:
@@ -1710,10 +1719,15 @@ def response200(ctype="text/plain", contents=""):
   res  = "HTTP/1.0 200 OK\r\n"
   res += "Date: "+date+"\r\n"
   res += "Content-Type: "+ctype+"\r\n"
-  res += "Content-Length: "+str(len(contents.encode()))+"\r\n"
-  res += "\r\n"
-  res += contents
-  return res
+  if type(contents) is str:
+    res += "Content-Length: "+str(len(contents.encode()))+"\r\n"
+    res += "\r\n"
+    return res + contents
+  else:
+    res += "Content-Length: "+str(len(contents))+"\r\n"
+    res += "\r\n"
+    return res.encode() + contents
+
 
 def response404():
   date = get_now_str()
