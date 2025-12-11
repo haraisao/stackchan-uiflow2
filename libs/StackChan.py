@@ -86,7 +86,7 @@ class StackChan:
 
     state_=self.web_server.toggle_state()
     color_ = 0x00ff00 if self.web_server.started else 0xff8888
-    
+
     if self.isconnected_wlan():
         self.face.print_info("IP:" + self.wlan.ifconfig()[0]+ ", "+state_, color_)
     else:
