@@ -85,14 +85,16 @@
                if(key == null){
                   key=ele.id.split("_");
                 }
-　　　　　　　　if(Array.isArray(key)){
-                  if(key.length > 1 ){
-                    stackchan_params[key[0]][key[1]] = ele.value;
-                   }else{
-　　　　　　　　　　 stackchan_params[key[0]] = ele.value;
-                   }
+               if(Array.isArray(key)){
+                    if(key.length > 1 ){
+                        var key1 = key.shift();
+                        var key2 = key.join("_");
+                        stackchan_params[key1][key2] = ele.value;
+                    }else{
+                        stackchan_params[key[0]] = ele.value;
+                    }
                 }else{
-　　　　　　　　　　stackchan_params[key] = ele.value;
+                  stackchan_params[key] = ele.value;
                 }
                 ele.style.color="red";
                 console.log(stackchan_params);
