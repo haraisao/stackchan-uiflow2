@@ -1,9 +1,14 @@
-<!DOCTYPE html>
-<html lang="ja">
-    <head>
-        <meta name="viewport" content="width=device-width,initial-scale=1.0">
-        <meta charset="utf-8">
+<html>
+  <head> 
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <meta charset="utf-8">
+            <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
+        <script src="https://hara-jp.com/js/jquery-linedtextarea.js"></script>
+        <link href="https://hara-jp.com/css/jquery-linedtextarea.css" type="text/css" rel="stylesheet" />
+
         <script type="text/javascript">
+            var get_dirlist=false;
+
             async function load_file(){
                 var name = document.getElementById("file_name").value;
                 var url ="/get_file"
@@ -13,22 +18,14 @@
                         "Content-Type": "application/json;charset=utf-8",
                     },
                     body: JSON.stringify({'file_name': name})
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        
-                        throw new Error(response.statusText);
-                    }
-                })
-                .catch(error =>{
-                    alert("ERROR");
-                    console.error('エラーが発生しました', error);
-                });
+                }
+                );
 
                 const data = await response.json();
                 console.log(data);
                 document.getElementById("editarea").value=data['data'];
             }
+
             async function save_file(){
                 var name = document.getElementById("file_name").value;
                 var txt = document.getElementById("editarea").value;
@@ -42,15 +39,73 @@
                 }
                 );
                 console.log(response);
-                alert("Save file:"+name)
             }
         </script>
         <title>Edit file</title>
     </head>
     <body>
-        Filename:  <input type="text" id="file_name" onChange="load_file()"/>
+        Filename:  <input type="text" id="file_name" />
+        <input type="button" onClick="load_file()" value="Load" style="font-size:12pt;width:100px;">
         <input type="button" onClick="save_file()" value="Save" style="font-size:12pt;width:100px;">
+    </td>
+    </tr>
+    <tr>
+      <td>
+	Dirs:<br>
+       <select id="dirlist" size="5" onchange="select_dir()"></select><br>
+      </td>
+      <td rowspan="2">
         <hr>
-        <textarea id="editarea" name="info" style="font-size:12pt;width:90%;height:500px;line-height:1.5em"></textarea>
-    </body>
+        <textarea id="editarea" name="info" class="lined" style="width:100%;height:500px;line-height:1.5em"></textarea>
+        <script>
+            $(function() {
+                $(".lined").linedtextarea();
+            });
+        </script>
+      </td>
+    </tr>
+    <tr>
+      <td>
+	Files:<br>
+       <select id="filelist" size="10" onchange="select_file()"></select><br>
+	  
+      </td>
+    </tr>
+    </table>
+
+    <hr>
+    <div>
+    <input id="file_load" type="file"> 
+    Upload to <input type=text"  id="file_name" value="" >
+    <button onClick="upload_file()">Upload</button>
+    <input type="hidden" id="file_data" />
+    </div>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', (event) => {
+          if(window.File && window.FileReader){
+            const elem_file_load = document.getElementById("file_load");
+            elem_file_load.addEventListener("change", (event) => {
+            const input_file = event.target.files[0];
+
+            const f_reader = new FileReader();
+
+            f_reader.onload = (event) => {
+              const elem_file_name = document.getElementById("file_name");
+              const elem_file_data = document.getElementById("file_data");
+
+              elem_file_name.value = input_file.name;
+              elem_file_data.value = event.target.result;
+            };
+            f_reader.readAsText(input_file);
+          });
+        } else {
+          alert("File API is not available");
+          return false;
+        }
+        });
+    </script>
+
+        <a href="/">Back to Top</a>
+  </body>
 </html>
