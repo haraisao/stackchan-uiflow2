@@ -23,10 +23,11 @@ class WebServer:
     self.registerCommand("/get_file", self.get_content)
     self.registerCommand("/save_file", self.save_content)
     self.registerCommand("/get_file_list", self.get_file_list)
+    self.registerCommand("/terminate", self.toggle_state)
   #
   #
   def renew(self):
-    self.server.stop()
+    self.server.terminate()
     self.server=comm.SocketServer(self.reader, "Web", "", self.port)
     self.started=False
     return
@@ -107,3 +108,7 @@ class WebServer:
       self.started = True
       return "Web On"
     
+  def spin(self, timeout=10):
+    self.started=True
+    while self.started:
+      self.server.spin_once(timeout)
