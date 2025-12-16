@@ -717,17 +717,17 @@ class HttpReader(CommReader):
         if header['Upgrade'] == "websocket":
           self.webSocketRequest(header, fname[0])
         else:
-          response = self.command.response404()
+          response = response404()
       else:
         contents = get_file_contents(fname[0], self.dirname)
         ctype = get_content_type(fname[0])
         if contents is None:
-          response = self.command.response404()
+          response = response404()
         else:
           if ctype.startswith("image"):
-            response = self.command.response200(ctype, contents)
+            response = response200(ctype, contents)
           else:
-            response = self.command.response200(ctype, contents.decode())
+            response = response200(ctype, contents.decode())
         self.sendResponse(response)
 
     elif cmd == "POST":
@@ -741,22 +741,22 @@ class HttpReader(CommReader):
         try:
           if 'audio/l16' in header['Content-Type'] :
             result = self.asr.request_asr(data)
-            response = self.command.response200('application/json; charset=utf-8', result)
+            response = response200('application/json; charset=utf-8', result)
 
             self.sendResponse(response)
           else:
-            esponse = self.command.response400()
+            response = response400()
             self.sendResponse(response)
         except:
-          response = self.command.response400()
+          response = response400()
           self.sendResponse(response)
       else:
           contents = "Hello, No such action defined"
-          response = self.command.response200("text/plain", contents)
+          response = response200("text/plain", contents)
           self.sendResponse(response)
 
     else:
-      response = self.command.response400()
+      response = response400()
       self.sendResponse(response)
 
     return
@@ -784,7 +784,7 @@ class HttpReader(CommReader):
 
       responseHeaders['Sec-WebSocket-Accept'] = response_key
       
-      response = self.command.response101(responseHeaders, "")
+      response = response101(responseHeaders, "")
 
       self.command = self.WSCommand.duplicate(self, func)
       self.sendResponse(response, False)
@@ -794,19 +794,19 @@ class HttpReader(CommReader):
         pass
 
     except:
-      self.sendResponse(self.command.response404())
+      self.sendResponse(response404())
 
   ###############
   # for SEAT-Alexa
   #
   def requestSeat(self, data):
     res = self.AlexaCommand.service(data)
-    response = self.command.response200('application/json;charset=UTF-8', json.dumps(res))
+    response = response200('application/json;charset=UTF-8', json.dumps(res))
     return response
 
   def hello(self, data):
     print("Hello:", data)
-    response = self.command.response200('application/json;charset=UTF-8', json.dumps({"result": "OK"}))
+    response = response200('application/json;charset=UTF-8', json.dumps({"result": "OK"}))
     return response
 
   ###############
@@ -818,7 +818,7 @@ class HttpReader(CommReader):
       self.registerHandler(Data)
       return None
     else:
-      return self.command.response400()
+      return response400()
       #response = self.command.response400()
       #self.sendResponse(response)
 
@@ -835,7 +835,7 @@ class HttpReader(CommReader):
       res["result"] = "ERROR"
 
     res["date"] = get_now_str()
-    return  self.command.response200("application/json", json.dumps(res))
+    return  response200("application/json", json.dumps(res))
     #response = self.command.response200("application/json", json.dumps(res))
     #self.sendResponse(response)
 
@@ -1036,49 +1036,6 @@ class HttpCommand(CommCommand):
       if h.find(":") > 0 :
         key, val = h.split(':', 1)
         res[key.strip()] = val.strip()
-    return res
-
-  ##################################
-  # Generate response message
-  #
-  def response101(self, header, contents=""):
-    date = get_now_str()
-    res  = "HTTP/1.1 101 Switching Protocols\r\n"
-    res += "Date: "+date+"\r\n"
-    for key,val in header.items():
-      res += key+": "+val+"\r\n"
-    res += "Content-Length: "+str(len(contents.encode()))+"\r\n"
-    res += "\r\n"
-    res += contents
-
-    return res
-
-  def response200(self, ctype, contents):
-    date = get_now_str()
-    res  = "HTTP/1.0 200 OK\r\n"
-    res += "Date: "+date+"\r\n"
-    res += "Content-Type: "+ctype+"\r\n"
-    if type(contents) is str:
-      res += "Content-Length: "+str(len(contents.encode()))+"\r\n"
-      res += "\r\n"
-      return res + contents
-    else:
-      res += "Content-Length: "+str(len(contents))+"\r\n"
-      res += "\r\n"
-      return res.encode() + contents
-
-  def response404(self):
-    date = get_now_str()
-    res  = "HTTP/1.0 404 Not Found\r\n"
-    res += "Date: "+date+"\r\n"
-    res += "\r\n"
-    return res
-
-  def response400(self):
-    date = get_now_str()
-    res  = "HTTP/1.0 400 Bad Request\r\n"
-    res += "Date: "+date+"\r\n"
-    res += "\r\n"
     return res
 
 ################################################
@@ -1553,7 +1510,7 @@ class CometManager:
       json_data['result'] = ""
 
       contents = json.dumps(json_data)
-      responsemsg = reader.command.response200(ctype, contents)
+      responsemsg = response200(ctype, contents)
       reader.sendResponse(responsemsg)
       self.long_pollings[id] = None
 
