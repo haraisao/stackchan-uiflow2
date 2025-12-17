@@ -261,22 +261,16 @@
            </table>
         <hr>
         <h2>Camera</h2>
-           <table>
-             <tr>
-               <th>開始時の初期化:　</th>
-               <td><select id="camera_setup"  onChange="update_param(this, 'camera_setup')">
-                         <option value=true /> Enable
-                         <option value=false /> Disable
-                        </select></td>
-             </tr>
-             <tr>
-               <th>上下転置:　</th>
-               <td><select id="vflip"  onChange="update_param(this)" >
-                    <option value=true /> Enable
-                    <option value=false /> Disable
-                </select></td>
-             </tr>
-           </table>
+           <ul>
+             <li>Setup:　<select id="camera">
+                         <option value=True /> Enable
+                         <option value=False /> Disable
+                        </select></li>
+            <li>V Flip:　<select id="vflip">
+                    <option value=True /> Enable
+                    <option value=False /> Disable
+                </select></li>
+           </ul>
         <hr>
 
         <a href="/">Back to Top</a>
