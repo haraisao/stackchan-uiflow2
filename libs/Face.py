@@ -65,10 +65,10 @@ class Face:
         return
     #
     #
-    def rot_pos(self, p, angle, center=None):
+    def rot_pos(self, pos, angle, center=None):
         if center is None: center=self.center
-        x=p[0] - center[0]
-        y=p[1] - center[1]
+        x=pos[0] - center[0]
+        y=pos[1] - center[1]
         s1=math.sin(angle * math.pi/180.0)
         c1=math.cos(angle * math.pi/180.0)
         x2=int(x*c1 - y*s1)
