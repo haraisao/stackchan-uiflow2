@@ -30,7 +30,7 @@ tar xzvf vosk-model-ja-0.22.zip
 ```
 
 ### Voicevox_coreのインストール
-Voicevox_coreの公式サイト(https://github.com/VOICEVOX/voicevox_core/releases)から最新版のダウンローダをダウンロードします。
+Voicevox_coreの公式サイト( https://github.com/VOICEVOX/voicevox_core/releases )から最新版のダウンローダをダウンロードします。
 
 Linux： download-linux-x64
 Window： download-windows-x64.exe
