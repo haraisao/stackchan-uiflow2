@@ -97,7 +97,7 @@ class Gemini(object):
 #
 #
 if __name__ == '__main__':
-  key='AIzaSyByemq_njHUKboAzDqxsi5NNdQ_JP7lXqc'
+  key=''
   gemini=Gemini(key)
   gemini.set_prompt("あたなは、小さなスーパーロボット「スタックチャン」です。現在、東京にいます。対話の応答は、東京にいることを前提に、２０字以内で答えてください。")
   res=gemini.request("こんにちは")
