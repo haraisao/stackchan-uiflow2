@@ -786,6 +786,7 @@ class HttpCommand(CommCommand):
         contentLen = int(self.header["Content-Length"])
         pos += contentLen
         self.data = self._buffer.encode()[:contentLen]
+        #print("==>", self.data)
         if len(self.data) < contentLen:
           return 0
         self.data=self.data.decode()

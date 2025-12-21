@@ -1,54 +1,57 @@
-# 音声認識サーバーおよび音声合成サーバー
-## 音声認識サーバー
+# 音声認識＆音声合成サーバ
 
-ローカルPC上で動作する音声認識サーバーです。Voskというライブラリを使用しています。
-このサーバーは、スタックチャンと連携することを念頭に、REST APIで動作するように実装したものです。
+VOSKを使った音声認識とvoicevox_coreを使った音声合成サーバを作成します。
+このサーバーは、Falskを使って実装しています。
 
-この音声認識サーバーを動作させるには、VOSKの[日本語音声認識モデル](https://alphacephei.com/vosk/models) (vosk-model-small-ja-0.22 または vosk-model-ja-0.22)が必要です。
+## 準備
+VOSKとVoicevox_coreの準備をします。
 
-### インストール
-VOSKは、pipコマンドでインストールすることができます。
-Ubuntu-24.04以降では、pipコマンドでライブラリをインストールする場合には、venvを用いた仮想環境で実行することが推奨されています。
-
-ここでは、venvを使った仮想環境を使った例を示します。
-以下のように、venvを作成して、voskの動作に必要なライブラリをインストールします。
+### VOSKのインストール
+VOSKは、pipでインストール可能ですので、requiremet_vosk.txtに記載したモジュールをインストールします。
 
 ```
- $ python3 -m venv vosk
- $ source vosk/bin/activate
- (vosk)$ pip install -r requirements_vosk.txt
-```
-インストールが完了したら、vosk-model-ja-0.22をダウンロードし、vosk-server.pyと同じディレクトリに配置してください。
-
-### 起動
-音声認識サーバーを起動するには、以下のコマンドを入力します。
-
-```
-$ source vosk/bin/activate
-(vosk) $ python3 vosk-server.py
+ pip install -r requirement_vosk.txt
 ```
 
-以上で、音声認識サーバが起動します。
-音声認識サーバーのデフォルトのポート番号は、```8000```にしています。
+次に音声認識のモデルをダウンロードします。
+https://alphacephei.com/vosk/models
+にある日本語のモデル(vosk-model-ja-0.22)をダインロードします。
 
-## 音声合成サーバー
-音声合成サーバーは、voicevoxを使用します。voicevoxのREST APIをサポートしたサーバーは、dockerで公開されていますので、そちらを使用します。
+ダウンロードした、vosk-model-ja-0.22.zip をこのディレクトリで回答します。
 
-dockerコンテナは、以下のものです。
-- voicevox/vicevox_engine:cpu-ubuntu20.04-latest
-
-### インストール
-voicevox_engineのdockerのセットアップは、以下のコマンドを入力します。
-
+Linux:
 ```
- $ voicevox/setup_docker.sh
+unzip vosk-model-ja-0.22
 ```
 
-### 起動
-セットアップ終了後、voicevox_engineを起動します。
+Windows:
 ```
- $ voicevox/run_voicevox.sh
+tar xzvf vosk-model-ja-0.22.zip
 ```
-以上で、音声合成サーバが起動します。
-音声合成サーバーのデフォルトのポート番号は、```50021```にしています。
 
+### Voicevox_coreのインストール
+Voicevox_coreの公式サイト(https://github.com/VOICEVOX/voicevox_core/releases)から最新版のダウンローダをダウンロードします。
+
+Linux： download-linux-x64
+Window： download-windows-x64.exe
+
+次にダウンローダを実行します。
+実行後、カレントディレクトリに、voicevox_coreというディレクトリにモデルや辞書等がダウンロードされます。
+
+次に、Pythonのモジュールをダウンロードします。
+ダウンローダと同じ場所に、voicevox_core-0.16.3-cp310-abi3-XXXXX.whl（XXXはOSによって変わります）がありますので、これをダウンロードします。
+
+ダウンロードしたファイルをpipでインストールします。
+```
+pip install voicevox_core-0.16.3-cp310-abi3-XXXXX.whl
+```
+
+## サーバーの起動
+サーバのプログラムは、server.pyです。
+このディレクトリで、下記のコマンドを実行します。
+
+```
+python server.py
+```
+
+以上で、Webサーバーが起動します。デフォルト設定では、8000番ポートを使用する設定にしています。

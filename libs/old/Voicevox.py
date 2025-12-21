@@ -9,7 +9,6 @@ import time
 from comm import Command
 import json
 import struct
-import binascii
 
 #########
 #
@@ -41,9 +40,8 @@ class Voicevox(Command):
     def setUrl(self, host=None, id=1):
         if host: self.host=host
         self.id=id
-        #self.query_url="http://%s:50021/audio_query?speaker=%d" % (self.host, self.id)
-        #self.synth_url="http://%s:50021/synthesis?speaker=%d" % (self.host, self.id)
-        self.synth_url="http://%s:8000/tts" % (self.host)
+        self.query_url="http://%s:50021/audio_query?speaker=%d" % (self.host, self.id)
+        self.synth_url="http://%s:50021/synthesis?speaker=%d" % (self.host, self.id)
         return
     #
     #
@@ -57,19 +55,26 @@ class Voicevox(Command):
     #
     def request_tts(self, txt):
         if self.requesting:
-            return False    
+            return False
+        #print("voicevox", txt)
         self.requesting=True
-        data={'data': txt, 'speaker': self.id}
-        res = requests2.post(self.synth_url, data=json.dumps(data).encode(), headers=self.header)
+        encode_txt=["%%%X" % x for x in txt.encode('utf-8')]
+        res = requests2.post(self.query_url+"&text="+"".join(encode_txt), headers=self.header)
+        self.query = b""
+
         if res.status_code == 200:
-            result=res.json()
-            audio=binascii.a2b_base64(result['audio'])
-            self.play_wav(audio)
+            self.query=res.content
+            res = requests2.post(self.synth_url, data=self.query, headers=self.header)
+            if res.status_code == 200:
+                self.play_wav(res.content)
+            else:
+                print("Fail to synthesize")
+                self.requesting=False
+                return False
         else:
-            print("Fail to synthesize")
+            print("Fail to get query")
             self.requesting=False
             return False
-
         self.requesting=False
         return True
     #

@@ -179,7 +179,7 @@ class StackChan:
   #
   def tracking_face(self):
     if not self.tracking_flag:
-      time.sleep_ms(50)
+      #time.sleep_ms(50)
       return 
     face_pos_ = self.detect_face()
     if face_pos_ :

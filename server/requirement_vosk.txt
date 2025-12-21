@@ -4,3 +4,4 @@ pydub
 pyyaml
 numpy
 sounddevice
+Flask
