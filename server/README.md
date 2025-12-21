@@ -46,6 +46,14 @@ Window： download-windows-x64.exe
 pip install voicevox_core-0.16.3-cp310-abi3-XXXXX.whl
 ```
 
+また、このサーバでは、voicevox_coreで生成されたWAVデータ、8kHzに変換しています。そのためのモジュールとして、soundfile と resampyを使用していますので、こちらもインストールします。
+
+```
+pip install soundfile
+pip install resampy
+```
+以上でvoicevox_coreのインストールは完了です。
+
 ## サーバーの起動
 サーバのプログラムは、server.pyです。
 このディレクトリで、下記のコマンドを実行します。

@@ -13,11 +13,8 @@ import soundfile as sf
 import resampy
 import json
 import base64
-from vosk_recog import VoskRecognizer
 
 VOICEVOX_CORE=os.path.join(os.path.dirname(__file__), "voicevox_core")
-
-
 #
 #   
 def setup_voicevox(core_dir=VOICEVOX_CORE, model="0.vvm"):
