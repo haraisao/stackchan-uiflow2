@@ -1,10 +1,7 @@
 #
 import os
-import sys
-import time
+
 from pydub import AudioSegment
-#from pydub.playback import play
-import pyaudio
 from pydub.utils import make_chunks
 
 from voicevox_core.blocking import Onnxruntime, OpenJtalk, Synthesizer, VoiceModelFile
@@ -54,7 +51,6 @@ def get_tts_sentence(txt):
         res.append(txt[prev:].strip())
     return res
 
-
 #
 #
 class Voicevox:
@@ -91,18 +87,3 @@ class Voicevox:
         param=json.loads(data)
         result=self.synthesize(param['data'])
         return result
-
-def main():
-    import comm
-    voice_v = Voicevox()
-    vosk = VoskRecognizer()
-    
-    web = comm.create_httpd(8000, "html")
-    web.reader.registerCommand('/tts', lambda data: voice_v.request(data))
-    web.reader.registerCommand('/vosk', lambda data: vosk.request(data))
-    
-    web.mainloop=True
-    web.run()
-
-if __name__=='__main__':
-    main()

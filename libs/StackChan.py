@@ -178,7 +178,7 @@ class StackChan:
   #
   #
   def tracking_face(self):
-    if not self.tracking_flag:
+    if not self.camera_setupted or not self.tracking_flag:
       #time.sleep_ms(50)
       return 
     face_pos_ = self.detect_face()
@@ -441,25 +441,16 @@ class StackChan:
   def set_face_id(self, id):
     self.face.set_face_id(id)
     return
-  #
-  # Spin once
-  def update(self):
-    debug = time.time() - self.debug_time
-    if self.debug != debug:
-      #print(debug)
-      self.debug = debug
+  
+  def web_update(self):
     if self.web_server:
       self.web_server.update()
-    self.face.update()
-    if self.camera_setupted:
-      self.tracking_face()
-    #return
-    #
+
+  def motor_update(self):
     if self.motor:
-      if self.motor.update():
-        #print("Debug", debug)
-        return
-    #
+      return self.motor.update()
+
+  def chat_update(self):
     if self.asr:
       res=self.asr.check_request()
       if res and self.dialog and res['result'] != '':
@@ -469,16 +460,35 @@ class StackChan:
             print(result)
             if result == "ありがとう":
               self.dialog.reset_chat()
-            self.tts.set_request(result.replace('*', ''))
+            if self.tts:
+              self.tts.set_request(result.replace('*', ''))
           except:
-            print(result)
+            print("Error in chat")
       else:
         if res is None:
           pass
           #self.tts.set_request("対話終了")
         elif res and res['result'] == '':
-          self.tts.set_request("何？")
+          if self.tts:
+            self.tts.set_request("何？")
         self.show_asr_result(res)
+  
     if self.tts:
       self.tts.check_request()
-    return
+
+  def debug_update(self):
+    debug = time.time() - self.debug_time
+    if self.debug != debug:
+      #print(debug)
+      self.debug = debug
+  #
+  # Spin once
+  def update(self):
+    self.debug_update()
+
+    self.web_update()
+    self.face.update()
+    self.tracking_face()
+
+    if not self.motor.update():
+      self.chat_update()

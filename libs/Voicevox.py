@@ -53,29 +53,32 @@ class Voicevox(Command):
         else:
             self.id=id
         return self.id
-    #
-    #
-    def request_tts(self, txt):
-        if self.requesting:
-            return False    
-        self.requesting=True
+    
+    def text2speech(self, txt):
         data={'data': txt, 'speaker': self.id}
-        res = requests2.post(self.synth_url, data=json.dumps(data).encode(), headers=self.header)
-        if res.status_code == 200:
+        response = requests2.post(self.synth_url, data=json.dumps(data).encode(), headers=self.header)
+        return response
+    #
+    #
+    def speak(self, txt):
+        result = False
+        if self.requesting:
+            return result    
+        self.requesting=True
+        res = self.text2speech(txt)
+        if res and res.status_code == 200:
             result=res.json()
             audio=binascii.a2b_base64(result['audio'])
             self.play_wav(audio)
+            result = True
         else:
             print("Fail to synthesize")
-            self.requesting=False
-            return False
-
         self.requesting=False
-        return True
+        return result
     #
     #
     def execute(self, txt):
-        return self.request_tts(txt)
+        return self.speak(txt)
     #
     #
     def play_wav(self, data, rate=24000):
@@ -112,7 +115,7 @@ class Voicevox(Command):
             req = request.replace("\n", "。").split("。")
             for msg in req:
                 if msg:
-                    self.request_tts(msg)
+                    self.speak(msg)
             self.request=None
             self.show_message()
         return

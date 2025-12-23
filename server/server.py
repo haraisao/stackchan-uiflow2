@@ -41,9 +41,9 @@ config=load_yaml(KEY_FILE)
 voice_v = Voicevox()
 vosk = VoskRecognizer()
 
-#key=config['GEMINI']
-#gemini=Gemini(key)
-#gemini.set_prompt("あたなは、小さなスーパーロボット「スタックチャン」です。現在、東京にいます。対話の応答は、東京にいることを前提に、２０字以内で答えてください。")
+key=config['gemini_key']
+gemini=Gemini(key)
+gemini.set_prompt("あたなは、小さなスーパーロボット「スタックチャン」です。現在、東京にいます。対話の応答は、東京にいることを前提に、２０字以内で答えてください。")
 
 
 #
@@ -52,19 +52,34 @@ vosk = VoskRecognizer()
 @app.route('/vosk', methods=["POST"])
 def rest_vosk():
     response = vosk.request(request.data)
-    return jsonify(response)
+    print(response)
+    return response
 
 @app.route('/tts', methods=["POST"])
 def rest_tts():
     response = voice_v.request(request.data)
     return jsonify(response)
 
-#@app.route('/talk_str', methods=["POST"])
-#def rest_talk_str():
-#    txt=request.json['data']
-#    result = gemini.request(txt)
-#    response={'response': result}
-#    return jsonify(response)
+@app.route('/talk_str', methods=["POST"])
+def rest_talk_str():
+    txt=request.json['data']
+    result = gemini.request(txt)
+    response={'response': result}
+    return jsonify(response)
+
+@app.route('/talk', methods=["POST"])
+def rest_talk():
+    txt=request.json['data']
+    result = gemini.request(txt)
+    response = voice_v.synthesize(result)
+    return jsonify(response)
+
+@app.route('/chat', methods=["POST"])
+def rest_chat():
+    txt = vosk.request(request.data)
+    result = gemini.request(txt)
+    response = voice_v.synthesize(result)
+    return jsonify(response)
 
 if __name__=='__main__':
     server_port = os.environ.get('PORT', '8000')
