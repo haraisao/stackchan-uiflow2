@@ -441,6 +441,19 @@ class StackChan:
   def set_face_id(self, id):
     self.face.set_face_id(id)
     return
+
+  def set_face_color(self, color=0xffffff, bg_color=0x000000):
+    self.face.set_color(color, bg_color)
+    return
+  
+  def get_face_id(self):
+    return self.face.current_face
+  
+  def get_current_pose(self):
+    if self.motor:
+      return self.motor.current_pos
+    else:
+      return None
   
   def web_update(self):
     if self.web_server:
@@ -460,6 +473,7 @@ class StackChan:
             print(result)
             if result == "ありがとう":
               self.dialog.reset_chat()
+              self.asr.request = False
             if self.tts:
               self.tts.set_request(result.replace('*', ''))
           except:
