@@ -93,13 +93,4 @@ class Gemini(object):
     if result:
       return self.get_system_chat_content(result)
     return ""
-
-#
-#
-if __name__ == '__main__':
-  key=''
-  gemini=Gemini(key)
-  gemini.set_prompt("あたなは、小さなスーパーロボット「スタックチャン」です。現在、東京にいます。対話の応答は、東京にいることを前提に、２０字以内で答えてください。")
-  res=gemini.request("こんにちは")
-  #res_str=gemini.get_system_chat_content(res)
-  print(res)
+  
