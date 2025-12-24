@@ -7,7 +7,7 @@ VOSKを使った音声認識とvoicevox_coreを使った音声合成サーバを
 VOSKとVoicevox_coreの準備をします。
 
 ### VOSKのインストール
-VOSKは、pipでインストール可能ですので、requiremet_vosk.txtに記載したモジュールをインストールします。
+VOSKは、pipでインストール可能ですので、requirement_vosk.txtに記載したモジュールをインストールします。
 
 ```
  pip install -r requirement_vosk.txt
@@ -21,7 +21,7 @@ https://alphacephei.com/vosk/models
 
 Linux:
 ```
-unzip vosk-model-ja-0.22
+unzip vosk-model-ja-0.22.zip
 ```
 
 Windows:
@@ -33,7 +33,7 @@ tar xzvf vosk-model-ja-0.22.zip
 Voicevox_coreの公式サイト( https://github.com/VOICEVOX/voicevox_core/releases )から最新版のダウンローダをダウンロードします。
 
 Linux： download-linux-x64
-Window： download-windows-x64.exe
+Windows： download-windows-x64.exe
 
 次にダウンローダを実行します。
 実行後、カレントディレクトリに、voicevox_coreというディレクトリにモデルや辞書等がダウンロードされます。
@@ -41,10 +41,12 @@ Window： download-windows-x64.exe
 次に、Pythonのモジュールをダウンロードします。
 ダウンローダと同じ場所に、voicevox_core-0.16.3-cp310-abi3-XXXXX.whl（XXXはOSによって変わります）がありますので、これをダウンロードします。
 
+
 ダウンロードしたファイルをpipでインストールします。
 ```
 pip install voicevox_core-0.16.3-cp310-abi3-XXXXX.whl
 ```
+2025/12/14現在では、最新版は0.16.3でした。実際に実行する場合には、ダウンロードしたバージョンに置き換えてください。
 
 また、このサーバでは、voicevox_coreで生成されたWAVデータ、8kHzに変換しています。そのためのモジュールとして、soundfile と resampyを使用していますので、こちらもインストールします。
 
