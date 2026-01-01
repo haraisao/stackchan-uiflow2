@@ -122,6 +122,7 @@ def main():
 
 
   gemini = Gemini()
+  gemini.set_prompt("あなたは、スーパー物知りロボットです。応答は30字以内でお願いします")
   gemini.reset_chat()
   reset_flag=False
   while True:

@@ -20,6 +20,7 @@ import time
 import os
 import comm
 import json
+import util
 
 #####################
 #
@@ -32,6 +33,7 @@ class WebServer:
     self.reader = comm.HttpReader(top)
     self.server = comm.SocketServer(self.reader, "Web", "", port)
     self.started=False
+    self.wlan=None
     self.registerCommand("/get_file", self.get_content)
     self.registerCommand("/save_file", self.save_content)
     self.registerCommand("/get_file_list", self.get_file_list)
@@ -56,6 +58,19 @@ class WebServer:
     self.server.reader.registerCommand(name, func)
     return
   
+  def connect_wlan(self):
+    self.wlan = util.connect_wlan()
+
+  def is_connected(self):
+    if self.wlan: return True
+    return False
+  
+  def get_ip_addr(self):
+    if self.wlan:
+      return self.wlan.ifconfig()
+    return ""
+  #
+  # REST
   def get_content(self, data):
     param = json.loads(data)
     #print(param)
