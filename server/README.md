@@ -15,9 +15,9 @@ VOSKは、pipでインストール可能ですので、requirement_vosk.txtに�
 
 次に音声認識のモデルをダウンロードします。
 https://alphacephei.com/vosk/models
-にある日本語のモデル(vosk-model-ja-0.22)をダインロードします。
+にある日本語のモデル(vosk-model-ja-0.22)をダウンロードします。
 
-ダウンロードした、vosk-model-ja-0.22.zip をこのディレクトリで回答します。
+ダウンロードした、vosk-model-ja-0.22.zip をこのディレクトリで解凍します。
 
 Linux:
 ```
