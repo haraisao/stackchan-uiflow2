@@ -208,3 +208,11 @@ __marimo__/
 
 ## test
 test/
+
+######
+old/
+__pycache__/
+*.pyc
+voicevox_core
+vosk*/
+*.wav

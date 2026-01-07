@@ -114,6 +114,9 @@ class SG90Driver:
         self.v_motor.deinit()
     return
   
+  def get_position(self):
+     return self.current_pos
+  
   def random_motion(self):
     self._target_h_deg = int(random.random() * 20) - 10
     self._target_v_deg = int(random.random() * (-30) )
