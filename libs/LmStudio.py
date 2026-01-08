@@ -21,7 +21,8 @@ import requests2
 import json
 import util
 
-DEFAULT_MODEL = 'openai/gpt-oss-20b'
+#DEFAULT_MODEL = 'openai/gpt-oss-20b'
+DEFAULT_MODEL = 'gemma-3-1b-it-qat'
 
 #
 #
@@ -30,7 +31,7 @@ class LmStudio(object):
   #  Constructor
   #
   def __init__(self, host='192.168.1.100'):
-    self._endpoint = "http://"+host+":1234/v1/responses"
+    self._endpoint = f"http://{host}:1234/v1/responses"
     self._apikey = 'lm-studio'
 
     self.model = DEFAULT_MODEL
@@ -123,7 +124,8 @@ class LmStudio(object):
 
 def main():
   con = LmStudio()
-  con.request("明日の東京では、傘は必要ですか？")
+  res=con.request("明日の東京では、傘は必要ですか？")
+  print(res)
 
 if __name__ == '__main__':
   main()
