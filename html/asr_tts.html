@@ -34,6 +34,21 @@
                 );
                 console.log(response);
             }
+
+            async function request_info(){
+                var msg = document.getElementById("message").value;
+                var url ="/command"
+
+                const response = await fetch(url,{
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json;charset=utf-8",
+                    },
+                    body: JSON.stringify({'cmd': 'message', 'data': msg})
+                }
+                );
+                console.log(response);
+            }
         </script>
         <title>音声認識＆音声合成</title>
     </head>
@@ -47,6 +62,8 @@
         発話区間推定　連続検出回数<input type="text" id="max_count" size="2" value="1"/><br>
         <button onclick="request_asr()">スタート</button>
 
+        <h1>Info</h1>
+        <input id="message" value=""><button onClick="request_info()">Message</button>
         <hr>
         <a href="/">Back to Top</a>
     </body>

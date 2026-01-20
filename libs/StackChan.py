@@ -138,6 +138,12 @@ class StackChan:
       print(params)
       return True
 
+    elif cmd_ == 'message':
+      msg=param.get('data')
+      print(msg)
+      self.print_info(msg)
+      return True
+    
     elif cmd_ == 'set_key':
       if param.get('name'):
         util.set_config(self.apikeys, param.get("name"), param.get("value"))
@@ -209,7 +215,7 @@ class StackChan:
           dy_deg = cpos[1] + dy / 20.0
           #print(cpos, dx, dy, dx_deg, dy_deg)
           self.motor.motor(True)
-          self.motor.move(dx_deg, dy_deg)
+          self.motor.move(dx_deg, dy_deg, force=True)
       if pos_[3] > 160:
         self.start_dialog()
     return
