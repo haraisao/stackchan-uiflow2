@@ -63,8 +63,8 @@ class SG90Driver:
     return
   #
   #
-  def move(self, h_deg, v_deg, scale=1.0, force=False):
-    if not force and self.moving:
+  def move(self, h_deg, v_deg, force_update=False, scale=1.0):
+    if not force_update and self.moving:
       return
 
     h_deg = max(min(h_deg, 90), -90)

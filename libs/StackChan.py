@@ -215,7 +215,7 @@ class StackChan:
           dy_deg = cpos[1] + dy / 20.0
           #print(cpos, dx, dy, dx_deg, dy_deg)
           self.motor.motor(True)
-          self.motor.move(dx_deg, dy_deg, force=True)
+          self.motor.move(dx_deg, dy_deg, True)
       if pos_[3] > 160:
         self.start_dialog()
     return
