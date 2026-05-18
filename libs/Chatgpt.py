@@ -29,54 +29,30 @@ class ChatGPT(object):
   #
   def __init__(self):
     self._endpoint = "https://api.openai.com/v1/responses"
-    self.conf = util.load_conf("/flash/apikey.txt")
-    self._apikey = self.conf.get('OPENAI_KEY')
+    self.api_conf = util.load_conf("/flash/apikey.txt")
+    self._apikey = self.api_conf.get('OPENAI_KEY')
 
     #self._endpoint = "http://localhost:1234/v1/responses"
     #self._apikey = 'lm-studio'
 
-    self.model = 'gpt-5'
-    self.chat_history=[]
+    self.model = 'gpt-5.4-mini'
     self.prompt = ""
+    self.prompt = ""
+
+    self.conf = util.load_conf("/chatgpt.txt")
+    if "ResponseID" in self.conf:
+      self.response_id = self.conf["ResponseID"]
+    else:
+      self.response_id = ""
   #
   #
   def reset_chat(self):
-    self.chat_history=[]
+    self.response_id = ""
   #
   #
   def set_prompt(self, prompt):
     self.prompt=prompt
 
-  #
-  #
-  def gen_chat_content(self, txt, role="user"):
-    res={
-          "content" : txt,
-          "role": role
-        }
-    self.chat_history.append(res)
-    return res
-
-  #
-  #
-  def get_system_chat_content(self, result):
-    try:
-      res=""
-      for output in result['output']:
-        if 'content' in output:
-
-          for part in output['content']:
-
-            try:
-              if part['type'] == 'output_text':
-                res += part['text']
-            except:
-              pass
-      self.gen_chat_content(res, 'assistant')
-      return res
-    except:
-      print("ERRPR", result)
-      return "Fail"
   #
   #
   def request_openai(self, text):
@@ -85,41 +61,60 @@ class ChatGPT(object):
         'Authorization': f'Bearer {self._apikey}',
         'Content-Type' : 'application/json; charset=utf-8' }
 
-    self.gen_chat_content(text)
     data = {
       'model': self.model,
-      'input': self.chat_history,
+      'input': text,
+      'store': True,
       #'tools': [{"type": "mcp", "server_label": "web-search" }]
       #'tools': [{"type": "web_search_preview"}],
       'tools': [{"type": "web_search"}],
     }
+
     if self.prompt:
-      data["input"].insert(0,
-          {
-            'role': "developer",
-            'content': self.prompt
-          })
+      data["instructions"]=self.prompt
+      
+    if self.response_id:
+      data["previous_response_id"] = self.response_id
+
     try:
       result = requests2.post(url, data=json.dumps(data).encode('utf-8'), headers=headers)
       response = result.json()
+      if 'id' in response:
+        self.response_id = response['id']
+        self.conf["ResponseID"] = response['id']
+        util.save_conf("/chatgpt.txt", self.conf)
       return response
     except:
       print ('Error', data, json.dumps(data).encode())
       return ""
+    
+  def getMessage(self, out):
+    res = ""
+    for v in out:
+      if v["type"] == "output_text":
+        res += v["text"]
+    return res
+  
+  def parseResponse(self, response):
+    txt=""
+    if "output" in response:
+      for out_ in response["output"]:
+        if out_["type"] == "message":
+          txt += self.getMessage(out_["content"])
+    return response["id"], txt    
   #
   #
   def talk(self, data):
     response=self.request_openai(data)
     if response:
-      return response
+      res_id, msg = self.parseResponse(response)
+      return msg
     return None
   #
   #
   def request(self, txt):
     result = self.talk(txt)
-    if result:
-      return self.get_system_chat_content(result)
-    return ""
+    return result
 
 def main():
   con = ChatGPT()
