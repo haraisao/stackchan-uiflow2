@@ -21,11 +21,13 @@ https://alphacephei.com/vosk/models
 
 Linux:
 ```
+url --ssl-no-revoke -O https://alphacephei.com/vosk/models/vosk-model-ja-0.22.zip
 unzip vosk-model-ja-0.22.zip
 ```
 
 Windows:
 ```
+url --ssl-no-revoke -O https://alphacephei.com/vosk/models/vosk-model-ja-0.22.zip
 tar xzvf vosk-model-ja-0.22.zip
 ```
 
@@ -34,6 +36,12 @@ Voicevox_coreの公式サイト( https://github.com/VOICEVOX/voicevox_core/relea
 
 Linux： download-linux-x64
 Windows： download-windows-x64.exe
+
+https://github.com/VOICEVOX/voicevox_core/releases/download/0.16.4/download-windows-x64.exe
+
+https://github.com/VOICEVOX/voicevox_core/releases/download/0.16.4/voicevox_core-0.16.4-cp310-abi3-win_amd64.whl
+
+https://github.com/VOICEVOX/voicevox_core/releases/download/0.16.4/voicevox_core-windows-x64-0.16.4.zip
 
 次にダウンローダを実行します。
 実行後、カレントディレクトリに、voicevox_coreというディレクトリにモデルや辞書等がダウンロードされます。
@@ -53,6 +61,7 @@ pip install voicevox_core-0.16.3-cp310-abi3-XXXXX.whl
 ```
 pip install soundfile
 pip install resampy
+pip install audioop-lts
 ```
 以上でvoicevox_coreのインストールは完了です。
 

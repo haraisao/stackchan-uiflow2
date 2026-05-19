@@ -80,8 +80,9 @@ class Voicevox:
         self.style_id = 2
 
     
-    def synthesize(self, txt):
+    def synthesize(self, txt, s_id=2):
         try:
+            self.style_id = s_id
             wav = self.synthesizer.tts(txt, self.style_id)
             fname='synth.wav'
             save_audio(fname, wav)
@@ -100,5 +101,9 @@ class Voicevox:
     def request(self, data):
         print("request:", data)
         param=json.loads(data)
-        result=self.synthesize(param['data'])
+        try:
+            speaker_id = param['speaker']
+        except:
+            speaker_id=2
+        result=self.synthesize(param['data'], speaker_id)
         return result

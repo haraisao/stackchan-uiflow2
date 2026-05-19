@@ -216,3 +216,6 @@ __pycache__/
 voicevox_core
 vosk*/
 *.wav
+*.zip
+*.exe
+*.whl
