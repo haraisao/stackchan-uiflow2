@@ -35,11 +35,14 @@ class VoskRecognizer:
 
   def request(self, data):
     try:
-      bdata = binascii.a2b_base64(data)
+      param=json.loads(data)
+      #bdata = binascii.a2b_base64(data)
+      bdata = binascii.a2b_base64(param['audio'])
       res=self.execute(bdata)
       response=json.loads(res)
       recog_txt=response['text'].replace(' ', '')
-      return recog_txt
+      #return recog_txt
+      return { 'result': recog_txt }
     except:
       import traceback
       traceback.print_exc()
