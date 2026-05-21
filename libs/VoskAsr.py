@@ -84,9 +84,11 @@ class VoskAsr(Command):
     url = self._endpoint
     headers = {  'Content-Type' : 'application/json; charset=utf-8' }
     audio_data = binascii.b2a_base64(data, newline=False)
-    request_data = audio_data.decode()
+    #request_data = audio_data.decode()
+    data = {'audip': audio_data}
     try:
-      response = requests2.post(url, json=request_data, headers=headers)
+      #response = requests2.post(url, json=request_data, headers=headers)
+      response = requests2.post(url, data=json.dumps(data).encode(), headers=headers)
       return response.text
     except:
       print("Error in rewuest")
